@@ -1,0 +1,132 @@
+---
+description: Admin page structure and UX patterns — layout, header, actions, filters, tables, forms, empty/loading/error states
+globs: resources/js/**/*
+alwaysApply: false
+---
+
+# Admin Page Pattern Rules
+
+Apply these rules whenever building or updating pages inside the admin portal.
+
+**Frontend identity:** A modern clean SaaS-style admin dashboard with spacious layout, subtle borders, soft shadows, clean cards, strong typography hierarchy, and professional enterprise-level polish.
+
+## Purpose
+
+These rules define the default structure and UX pattern for admin pages so all modules feel consistent across the system.
+
+Applies to pages such as: Dashboard, Students, Teachers, Staff, Academic Sessions, Classes, Sections, Subjects, Attendance, Routines, Exams, Results, Notices, Events, Gallery, Downloads, Admissions, Users, Roles and Permissions, Settings, Reports.
+
+## Core Principle
+
+Every admin page must feel like part of the same product. Pages must be: **consistent**, **readable**, **spacious**, **modular**, **professional**, **easy to scan**, **easy to act on**. Avoid designing each page in a different style.
+
+## Default Page Structure
+
+Unless a page clearly requires something different, use this structure:
+
+1. Page wrapper
+2. Page header
+3. Supporting description or breadcrumb if needed
+4. Top action bar
+5. Filter/search area if relevant
+6. Main content area
+7. Table / cards / form / tabs
+8. Secondary sections if needed
+
+## Page Wrapper
+
+Use a reusable page container component for consistent spacing and width. Provide: horizontal padding, vertical spacing, consistent section gaps, responsive behavior. Admin pages should use available screen width well and should not feel trapped in narrow containers.
+
+## Page Header Pattern
+
+Each page should begin with a strong page header. Include: **page title**, **short description when useful**, **primary action area on the right**. Examples: Students / Add Student; Teachers / Add Teacher; Notices / Create Notice; Results / Publish Result.
+
+**Header style rules:** Title clear and prominent; description subtle and supportive; actions easy to find; avoid oversized hero-style headers.
+
+## Action Bar Pattern
+
+Place user actions near the top. Typical actions: create, export, filter, bulk actions, refresh, publish, print. **Rules:** Primary action should stand out clearly; secondary actions visible but less dominant; keep actions aligned and organized; do not scatter actions across the page.
+
+## Filter and Search Pattern
+
+For list pages, include a dedicated filter/search section above the content table. Typical filters: search input, status filter, class filter, section filter, date filter, session filter. **Rules:** Place filters in a dedicated card or row; group related filters logically; keep layouts clean and compact; provide reset/clear when useful; avoid oversized filter panels unless necessary.
+
+## List Page Pattern
+
+List pages usually contain: page header, action bar, filter/search area, summary row if useful, table/card list, pagination. Examples: Students list, Teachers list, Notices list, Exams list, Results list. **Rules:** Tables clean and easy to scan; columns meaningful and not overloaded; actions grouped cleanly; **empty state must always exist**; **loading state must always exist**; pagination when needed; bulk selection only if truly useful.
+
+## Table Pattern
+
+- Comfortable row height; headers subtle but distinct; align text and actions consistently; avoid too many columns; truncate only when necessary; important fields visible first.
+- **Preferred column order:** primary identifying field → supporting metadata → status → updated/relevant date → actions.
+- **Table actions:** view, edit, delete, publish, assign, print. Destructive actions visually separated; avoid cluttering every row; use dropdowns for overflow actions if needed.
+
+## Summary Card Pattern
+
+For dashboards and overview pages, use summary cards at the top (e.g. total students, total teachers, today attendance, pending admissions, published notices). **Rules:** Cards compact and readable; do not overload with text; prioritize number + label + optional trend; consistent spacing and sizing; icon usage subtle if used.
+
+## Form Page Pattern
+
+**Structure:** (1) Page header, (2) Form sections, (3) Sticky or visible action footer/header if needed. **Rules:** Split long forms into logical sections/cards; clear section titles; consistent field spacing; labels always visible; short helper text; validation messages near fields; required fields marked; avoid giant single-column walls of inputs. Typical sections: basic information, academic information, contact information, guardian information, documents, status/settings.
+
+## Form Action Pattern
+
+Primary form actions must be obvious. Typical: save, save and continue, update, cancel, reset. **Rules:** Primary submit clearly dominant; cancel/back visible; destructive actions do not compete with primary submit; **loading state must be shown during submission**.
+
+## Detail / View Page Pattern
+
+Clean header with important actions; content in information cards/sections; group related information; present important facts first; avoid long unstructured text blocks. Examples: Student details, Teacher details, Notice details, Admission application details.
+
+## Dashboard Pattern
+
+Recommended layout: (1) Welcome/header section, (2) Top summary cards, (3) Main analytics/content row, (4) Recent activity / recent records, (5) Quick action section if useful. Prioritize useful information; keep charts simple unless requested; do not overload; dashboard should feel like a useful command center.
+
+## Empty State Pattern
+
+Whenever content may be empty, provide a clean empty state: short title, short explanation, optional action button. Examples: No students found; No notices published yet; No results available. Empty states must feel intentional, not broken.
+
+## Loading State Pattern
+
+Every async page must include a loading state. Use skeletons or simple placeholders if appropriate; loading UI should match final layout; avoid layout jump; do not leave blank screens while loading.
+
+## Error State Pattern
+
+When data fails to load or submit: show a clear message; suggest retry where useful; keep the UI calm and professional; do not expose raw system errors in the interface.
+
+## Status Badge Pattern
+
+For entities with statuses, use consistent badge styling and naming (e.g. active, inactive, pending, approved, rejected, published, draft, archived). Status badges must be easy to scan; use consistent colors across modules; do not invent different badge styles per page.
+
+## Modal and Drawer Pattern
+
+- **Use modal for:** quick create, quick edit, confirmation, small focused tasks.
+- **Use full page for:** large forms, complex workflows, multi-section editing.
+- Do not force everything into modals.
+
+## Delete / Confirm Pattern
+
+Destructive actions must always confirm intent: show confirmation dialog; explain what will happen; confirm text explicit; visually separate dangerous actions.
+
+## Responsive Page Behavior
+
+Desktop-first but must work on tablet and smaller screens. Action bars wrap cleanly; filter rows stack gracefully; tables support horizontal overflow when needed; do not let layouts break at medium widths; preserve usability over visual perfection on smaller screens.
+
+## Reusability Rules
+
+When patterns repeat, extract reusable components: page header, stats card, data table wrapper, filter bar, empty state, status badge, form section, confirm modal. Do not duplicate the same layout structure repeatedly across pages.
+
+## Frontend Consistency Rules
+
+Use the same: spacing scale, border radius scale, card structure, typography hierarchy, button priority pattern, table layout philosophy, form structure philosophy. Consistency is more important than novelty.
+
+## Scope Discipline
+
+Do not add decorative UI that does not improve usability. Avoid: random gradients, noisy backgrounds, oversized illustrations in admin pages, flashy animations, inconsistent icon usage, overly complex card layouts, excessive charts, dense unreadable tables.
+
+## Implementation Priority
+
+When generating admin pages, prioritize in this order: (1) structure, (2) clarity, (3) consistency, (4) usability, (5) responsiveness, (6) polish.
+
+## Expected Behavior From Cursor
+
+Whenever working on an admin page, default to: creating a clean page header; creating a clear action area; creating filter/search UI when relevant; using cards and sections consistently; handling loading, empty, and error states; keeping components modular; matching the established admin design system.

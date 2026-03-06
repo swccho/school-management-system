@@ -1,0 +1,196 @@
+---
+description: Frontend UI rules for admin portal — modern clean SaaS dashboard style, layout, cards, tables, forms, Vue 3
+globs: resources/js/**/*
+alwaysApply: false
+---
+
+# Frontend UI Rules — Admin Portal
+
+Apply these rules whenever working on the frontend, especially inside the admin portal.
+
+## Design Direction
+
+The admin frontend must follow a **modern clean SaaS dashboard style**.
+
+Visual goals:
+
+- clean and professional
+- modern and premium
+- spacious layout
+- soft shadows
+- subtle borders
+- excellent readability
+- minimal clutter
+- polished enterprise-style admin interface
+
+The design should feel similar to a high-quality modern dashboard product, not a basic template.
+
+## General UI Principles
+
+- Prefer clean layouts over decorative layouts.
+- Always prioritize readability and usability.
+- Use generous spacing between sections.
+- Keep strong visual hierarchy with clear titles, subtitles, cards, and tables.
+- Avoid overcrowded screens.
+- Avoid excessive colors, gradients, and unnecessary visual noise.
+- Keep the interface elegant and restrained.
+
+## Layout Rules
+
+- Use a left sidebar for main navigation.
+- Use a top header for page title, actions, and user area.
+- Main content should have comfortable padding.
+- Use consistent spacing throughout the application.
+- Prefer wide layouts that use available screen space well.
+- Avoid overly narrow container-based layouts for admin pages.
+- Dashboard and data pages should feel open and breathable.
+
+## Card Design
+
+- Use cards for grouped content.
+- Cards should have:
+  - soft border or very subtle shadow
+  - rounded corners
+  - clean padding
+  - strong title hierarchy
+- Avoid heavy shadows or flashy card styles.
+- Summary cards should feel modern and compact.
+
+## Tables
+
+- Tables must look clean and professional.
+- Always support:
+  - empty state
+  - loading state
+  - pagination when needed
+  - responsive overflow handling
+- Use comfortable row height.
+- Keep actions clear and aligned.
+- Avoid cramped columns.
+- Table headers should be visually distinct but subtle.
+
+## Forms
+
+- Forms must feel clean and easy to scan.
+- Use proper vertical spacing between fields.
+- Group related inputs into clear sections/cards.
+- Labels must always be visible and readable.
+- Validation messages must be clear and placed close to inputs.
+- Primary actions should be obvious.
+- Avoid overly long unstructured forms; split into sections when needed.
+
+## Page Structure
+
+Every page should usually follow this structure:
+
+1. Page header
+2. Short supporting description if needed
+3. Top action area if relevant
+4. Main content section
+5. Cards / table / form content
+
+Use a reusable page container where possible.
+
+## Components
+
+- Keep components small and reusable.
+- Extract repeated UI into shared components.
+- Avoid giant page files.
+- Prefer composable, modular UI structure.
+- Reusable components should have clean props and events.
+
+## Vue Rules
+
+- Use Vue 3
+- Use Composition API
+- Use `<script setup>`
+- Keep templates clean
+- Move non-trivial logic into composables or services
+- Prefer computed properties over complex inline template logic
+- Avoid mutating props
+- Keep route pages separate from reusable components
+
+## Responsiveness
+
+- Frontend must be responsive.
+- Sidebar, header, tables, and forms must remain usable on smaller screens.
+- Mobile behavior should be practical, even if admin usage is mostly desktop-first.
+- Do not break layout on tablet widths.
+
+## Styling Behavior
+
+- Match the existing project styling approach.
+- If the project uses Tailwind, follow Tailwind consistently.
+- If the project uses another styling system, follow that instead of mixing patterns.
+- Do not introduce inconsistent styling approaches.
+- Maintain consistent spacing, radius, border, and typography scales.
+
+## Admin Portal Visual Tone
+
+The admin portal should feel:
+
+- professional
+- modern
+- calm
+- premium
+- organized
+- data-friendly
+
+It should not feel:
+
+- childish
+- crowded
+- overly colorful
+- outdated
+- template-like
+- visually noisy
+
+## UX Expectations
+
+Whenever building or updating frontend pages:
+
+- include loading states
+- include empty states
+- include error states where relevant
+- include success feedback where relevant
+- keep navigation intuitive
+- keep important actions easy to find
+- avoid confusing layouts
+
+## Dashboard Direction
+
+When building dashboard pages:
+
+- prefer summary cards at the top
+- use clean sections for stats, recent items, and quick actions
+- keep charts and analytics visually simple unless requested
+- prioritize useful information over decoration
+
+## Implementation Priority
+
+When generating frontend code, prioritize in this order:
+
+1. usability
+2. clarity
+3. consistency
+4. responsiveness
+5. visual polish
+
+## Scope Discipline
+
+Do not overdesign.
+Do not add unnecessary animations.
+Do not add random gradients, colors, or decorative elements unless asked.
+Do not create cluttered layouts.
+Keep the frontend polished, modern, and scalable.
+
+## When Working on Existing Frontend Code
+
+- preserve existing good patterns
+- improve consistency
+- refine layout and spacing
+- avoid unnecessary rewrites
+- prefer incremental improvement over disruptive redesign
+
+Frontend identity:
+A modern clean SaaS-style admin dashboard with spacious layout, subtle borders, soft shadows, clean cards, strong typography hierarchy, and professional enterprise-level polish.

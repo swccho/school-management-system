@@ -1,0 +1,109 @@
+---
+description: Laravel 12 + Vue 3 project conventions, architecture, and code style
+alwaysApply: true
+---
+
+# Laravel 12 + Vue 3 Project Rules
+
+## General
+- Follow Laravel 12 conventions and modern best practices.
+- Follow Vue 3 best practices with Composition API and `<script setup>`.
+- Prefer clean, readable, maintainable code over clever code.
+- Keep functions and components small and focused.
+- Do not introduce unnecessary abstractions.
+- Before generating code, inspect nearby files and match existing patterns.
+
+## Backend Architecture (Laravel 12)
+- Use Form Requests for validation instead of inline controller validation.
+- Keep controllers thin.
+- Put business logic in Services / Actions when logic grows beyond simple CRUD.
+- Use Eloquent relationships properly and avoid duplicate query logic.
+- Use route model binding where appropriate.
+- Prefer dependency injection through constructors and method injection.
+- Use interfaces/contracts when a service may have multiple implementations.
+- Use policies and gates for authorization.
+- Use API Resources / Transformers for API responses.
+- Use enums for fixed status/type fields when appropriate.
+- Use database transactions for multi-step writes.
+- Prevent N+1 queries with eager loading.
+- Prefer named routes and consistent route organization.
+- Use pagination for large lists.
+- Write feature tests for important flows and unit tests for isolated logic.
+- Use migrations, seeders, and factories cleanly and consistently.
+- Register custom service providers in `bootstrap/providers.php` when needed.
+
+## Laravel 12 preferences
+- Laravel 12 continues Laravel 11’s direction: updated dependencies, starter kits for Vue, React, Svelte, and Livewire. User-defined service providers belong in `bootstrap/providers.php`; the framework emphasizes container-driven dependency injection.
+- Prefer constructor injection and container-resolved dependencies.
+- Use service providers only when bootstrapping or binding is actually needed.
+- Keep app-specific bindings organized and minimal.
+- Prefer starter-kit-compatible structure when auth or scaffolding is used.
+- Follow Laravel naming conventions exactly.
+
+## Laravel Code Style
+- Follow PSR-12 formatting.
+- Prefer early returns.
+- Avoid static helpers where DI is cleaner.
+- Do not use raw queries unless necessary.
+- Use meaningful class, method, and variable names.
+- Log useful context on failures, but never expose secrets.
+
+## Frontend Architecture (Vue 3)
+- Use Vue 3 Composition API.
+- Prefer `<script setup>` for Single File Components.
+- Keep pages, layouts, and reusable UI components separate.
+- Prefer composables for reusable stateful logic.
+- Keep components presentational when possible.
+- Use props/emits clearly and avoid deep prop drilling where possible.
+- Use TypeScript in Vue components if the project already uses TypeScript.
+- Keep API calls out of UI components when possible; move them to services/composables.
+- Handle loading, empty, error, and success states explicitly.
+- Avoid giant components.
+- Follow the Vue style guide for component organization and naming.
+
+## Vue 3 preferences
+- Vue’s official docs recommend `<script setup>` for SFCs using Composition API; the official style guide is the baseline for component naming, organization, and avoiding anti-patterns.
+- Use `<script setup>` by default.
+- Use Composition API by default.
+- Extract reusable logic into composables.
+- Use explicit props and emits.
+- Prefer computed properties over inline template logic.
+- Follow the official Vue style guide unless the project already uses a different established convention.
+
+## Vue Code Style
+- Use multi-word component names.
+- Use one component per file.
+- Keep props typed and explicit.
+- Prefer computed over complex template expressions.
+- Avoid mutating props.
+- Use v-for with stable keys.
+- Keep templates clean and move logic into script/composables.
+
+## Full Stack Rules
+- Backend remains the source of truth for validation and authorization.
+- Frontend validation improves UX but never replaces backend validation.
+- Keep response formats consistent.
+- Standardize success, error, and validation error handling.
+- Use shared constants/enums where practical.
+- Make all forms resilient to validation failures.
+
+## Security
+- Validate and authorize every write action.
+- Never trust client input.
+- Escape and sanitize rendered content where needed.
+- Protect uploads and private files correctly.
+- Never hardcode secrets, tokens, or credentials.
+
+## Performance
+- Avoid unnecessary queries, watchers, and rerenders.
+- Lazy load heavy frontend sections when helpful.
+- Use indexes for searchable/filterable columns.
+- Optimize reports and dashboards for scale.
+
+## Deliverables
+- When generating code, also suggest:
+  1. files to create/update
+  2. edge cases
+  3. validation rules
+  4. test coverage needed
+  5. likely follow-up refactors
