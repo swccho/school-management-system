@@ -21,9 +21,16 @@
       </div>
     </div>
     <div class="flex items-center gap-3">
-      <span class="text-sm text-zinc-500 dark:text-zinc-400">Admin</span>
+      <span class="text-sm text-zinc-500 dark:text-zinc-400">{{ userDisplayName }}</span>
+      <button
+        type="button"
+        class="rounded-lg px-3 py-1.5 text-sm font-medium text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+        @click="handleLogout"
+      >
+        Log out
+      </button>
       <div class="h-8 w-8 rounded-full bg-zinc-200 dark:bg-zinc-700 flex items-center justify-center text-xs font-medium text-zinc-600 dark:text-zinc-300">
-        A
+        {{ userInitial }}
       </div>
     </div>
   </header>
@@ -31,14 +38,25 @@
 
 <script setup>
 import { computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAppStore } from '../stores/appStore.js';
+import { useAuth } from '../composables/useAuth.js';
 
 const route = useRoute();
+const router = useRouter();
 const appStore = useAppStore();
+const { user, logout } = useAuth();
 
 const toggleSidebar = () => appStore.toggleSidebar();
 
 const pageTitle = computed(() => route.meta?.title ?? 'Admin');
 const pageSubtitle = computed(() => route.meta?.subtitle ?? null);
+
+const userDisplayName = computed(() => user.value?.name ?? 'Admin');
+const userInitial = computed(() => (user.value?.name ? user.value.name.charAt(0).toUpperCase() : 'A'));
+
+async function handleLogout() {
+  await logout();
+  router.push('/admin/login');
+}
 </script>

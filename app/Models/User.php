@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -21,6 +22,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'user_type',
+        'status',
     ];
 
     /**
@@ -44,5 +47,33 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function roles(): BelongsToMany
+    {
+        return $this->belongsToMany(Role::class, 'user_role')->withTimestamps();
+    }
+
+    public function hasRole(string $slug): bool
+    {
+        return $this->roles()->where('slug', $slug)->exists();
+    }
+
+    public function hasPermission(string $slug): bool
+    {
+        return $this->roles()
+            ->whereHas('permissions', fn ($q) => $q->where('permissions.slug', $slug))
+            ->exists();
+    }
+
+    public function hasAnyPermission(array $slugs): bool
+    {
+        if (empty($slugs)) {
+            return false;
+        }
+
+        return $this->roles()
+            ->whereHas('permissions', fn ($q) => $q->whereIn('permissions.slug', $slugs))
+            ->exists();
     }
 }

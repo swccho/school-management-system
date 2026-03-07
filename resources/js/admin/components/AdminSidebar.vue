@@ -10,17 +10,24 @@
     </div>
     <nav class="flex-1 overflow-y-auto p-4">
       <ul class="space-y-1">
-        <li v-for="item in navItems" :key="item.name">
-          <router-link
-            :to="item.to"
-            class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
-            :class="isActive(item.to)
-              ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
-              : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'"
-          >
-            <span>{{ item.label }}</span>
-          </router-link>
-        </li>
+        <template v-for="item in navItems" :key="item.name">
+          <li v-if="item.isGroup" class="mt-4 pt-2 first:mt-0 first:pt-0">
+            <span class="px-3 text-xs font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
+              {{ item.label }}
+            </span>
+          </li>
+          <li v-else>
+            <router-link
+              :to="item.to"
+              class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors"
+              :class="isActive(item.to)
+                ? 'bg-zinc-100 text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100'
+                : 'text-zinc-600 hover:bg-zinc-50 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-100'"
+            >
+              <span>{{ item.label }}</span>
+            </router-link>
+          </li>
+        </template>
       </ul>
     </nav>
   </aside>
@@ -48,8 +55,17 @@ const toggleSidebar = () => appStore.toggleSidebar();
 const navItems = [
   { name: 'dashboard', label: 'Dashboard', to: '/admin/dashboard' },
   { name: 'users', label: 'Users', to: '/admin/users' },
-  { name: 'academic', label: 'Academic Setup', to: '/admin/academic' },
-  { name: 'settings', label: 'Settings', to: '/admin/settings' },
+  { name: 'academic-group', label: 'Academic', to: null, isGroup: true },
+  { name: 'academic-sessions', label: 'Sessions', to: '/admin/academic/sessions' },
+  { name: 'academic-classes', label: 'Classes', to: '/admin/academic/classes' },
+  { name: 'academic-sections', label: 'Sections', to: '/admin/academic/sections' },
+  { name: 'academic-subjects', label: 'Subjects', to: '/admin/academic/subjects' },
+  { name: 'access-control-group', label: 'Access Control', to: null, isGroup: true },
+  { name: 'roles', label: 'Roles', to: '/admin/roles' },
+  { name: 'permissions', label: 'Permissions', to: '/admin/permissions' },
+  { name: 'settings-group', label: 'Settings', to: null, isGroup: true },
+  { name: 'school-profile', label: 'School Profile', to: '/admin/settings/school-profile' },
+  { name: 'system-settings', label: 'System Settings', to: '/admin/settings/system' },
 ];
 
 function isActive(to) {
