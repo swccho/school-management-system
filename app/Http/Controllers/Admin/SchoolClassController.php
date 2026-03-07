@@ -7,11 +7,15 @@ use App\Http\Requests\Admin\StoreSchoolClassRequest;
 use App\Http\Requests\Admin\UpdateSchoolClassRequest;
 use App\Models\School;
 use App\Models\SchoolClass;
+use App\Services\DateTimeFormatter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SchoolClassController extends Controller
 {
+    public function __construct(
+        private DateTimeFormatter $dateTimeFormatter
+    ) {}
     public function index(Request $request): JsonResponse
     {
         if (! $request->user()->hasPermission('view-academic-setup')) {
@@ -68,7 +72,9 @@ class SchoolClassController extends Controller
             'description' => $c->description,
             'status' => $c->status,
             'created_at' => $c->created_at->toIso8601String(),
+            'created_at_formatted' => $this->dateTimeFormatter->formatDateTime($c->created_at),
             'updated_at' => $c->updated_at->toIso8601String(),
+            'updated_at_formatted' => $this->dateTimeFormatter->formatDateTime($c->updated_at),
         ];
     }
 }

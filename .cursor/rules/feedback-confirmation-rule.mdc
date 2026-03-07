@@ -1,0 +1,118 @@
+---
+description: Use confirmation modals and toasts instead of alert/confirm/prompt; no native dialogs in frontend
+globs: resources/js/**/*
+alwaysApply: false
+---
+
+# Feedback and Confirmation Rule
+
+Apply these rules whenever building or updating frontend interactions in this project.
+
+## Core Rule
+
+Do NOT use browser-native dialogs for user interactions.
+
+Never use:
+
+- `alert()`
+- `confirm()`
+- `prompt()`
+
+These do not match the admin dashboard design system and create an inconsistent user experience.
+
+---
+
+## Confirmation Rule
+
+For any destructive action or important confirmation, always use a **reusable confirmation modal**.
+
+Examples: delete record, set current session, publish result, archive item, deactivate user, remove routine item, clear form, regenerate results, overwrite existing data.
+
+Use a modal styled to match the project's modern SaaS admin design (not raw browser dialogs).
+
+### Confirmation modal requirements
+
+- title
+- message/description
+- confirm button
+- cancel button
+- loading state during confirm action
+- optional destructive styling for dangerous actions
+
+Example titles: "Confirm deletion", "Set current session", "Publish result", "Remove item".
+
+Example confirm labels: "Delete", "Confirm", "Set Current", "Publish", "Save Changes".
+
+Do not use browser `confirm()` under any circumstances.
+
+---
+
+## Toast Notification Rule
+
+For success, error, warning, and informational feedback, always use **toast notifications**.
+
+Examples: create/update/delete/generate/publish success, API error, validation-independent server error, warning/info feedback.
+
+### Toast requirements
+
+Use a **reusable global toast/toaster system**. Toasts should support: success, error, warning, info.
+
+Example messages: "Academic session created successfully.", "Unable to save changes. Please try again.", "Result generation completed successfully."
+
+Do not use `alert()` for messages.
+
+---
+
+## Inline Validation Rule
+
+Validation errors for form fields must remain **inline** near the relevant inputs.
+
+Use inline field errors for validation; use toasts for submission success/failure summary when appropriate. Do not replace inline validation with toasts only.
+
+---
+
+## Reusability Rule
+
+Use **shared reusable components** for:
+
+- confirmation modal
+- toaster / toast notifications
+
+Do not build one-off confirmation dialogs inside feature modules. If behavior needs to evolve, extend the shared component/system instead of duplicating logic.
+
+---
+
+## Styling Rule
+
+Confirmation modals and toast notifications must match the project's admin design system:
+
+- dark theme compatible
+- modern SaaS-style UI
+- clear hierarchy, readable text
+- consistent button styling, proper spacing
+- smooth but minimal transitions
+
+---
+
+## UX Rule
+
+Use confirmation modals only when user confirmation is actually needed: destructive actions, important state changes, actions with significant consequences.
+
+Do not show confirmation modals for simple harmless actions unless truly necessary. Use toasts for lightweight feedback after action completion.
+
+---
+
+## Default Behavior
+
+| Action | Confirmation | On success | On failure |
+|--------|--------------|------------|------------|
+| Create | none | success toast | error toast |
+| Update | none (unless sensitive) | success toast | error toast |
+| Delete | confirmation modal required | success toast | error toast |
+| Set current / publish / archive | confirmation modal required | success toast | error toast |
+
+---
+
+## Implementation Rule
+
+When encountering existing code that uses `alert()`, `confirm()`, or `prompt()`, replace it with the shared confirmation modal and/or shared toast/toaster. Do not leave native dialogs in the project.

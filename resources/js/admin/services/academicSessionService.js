@@ -9,8 +9,11 @@ const api = axios.create({
   },
 });
 
-export async function getSessions() {
-  const { data } = await api.get('/admin/academic-sessions');
+export async function getSessions(params = {}) {
+  const clean = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v != null && v !== '')
+  );
+  const { data } = await api.get('/admin/academic-sessions', { params: clean });
   return data;
 }
 
@@ -31,5 +34,10 @@ export async function updateSession(id, payload) {
 
 export async function setCurrentSession(id) {
   const { data } = await api.post(`/admin/academic-sessions/${id}/set-current`);
+  return data;
+}
+
+export async function generateCode(payload = {}) {
+  const { data } = await api.post('/admin/academic-sessions/generate-code', payload);
   return data;
 }

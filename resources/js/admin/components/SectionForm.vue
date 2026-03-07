@@ -28,22 +28,19 @@
           </p>
 
           <div>
-            <label for="section-class" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Class</label>
-            <select
+            <SearchableSelect
               id="section-class"
               v-model="form.class_id"
+              label="Class"
+              :options="classes"
+              label-key="name"
+              value-key="id"
+              placeholder="Select class"
+              search-placeholder="Search classes…"
               required
-              class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-            >
-              <option value="" disabled>Select class</option>
-              <option
-                v-for="cls in classes"
-                :key="cls.id"
-                :value="cls.id"
-              >
-                {{ cls.name }}
-              </option>
-            </select>
+              :loading="classesLoading"
+              loading-text="Loading classes…"
+            />
             <p v-if="classes.length === 0 && !classesLoading" class="mt-1 text-xs text-amber-600 dark:text-amber-400">
               No classes found. Add classes first.
             </p>
@@ -136,6 +133,7 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
+import SearchableSelect from '../../shared/components/form/SearchableSelect.vue';
 import { getClasses } from '../services/classService.js';
 import { createSection, updateSection } from '../services/sectionService.js';
 

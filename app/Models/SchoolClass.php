@@ -44,4 +44,39 @@ class SchoolClass extends Model
     {
         return $this->hasMany(Section::class, 'class_id');
     }
+
+    public function teacherSubjectAssignments(): HasMany
+    {
+        return $this->hasMany(TeacherSubjectAssignment::class, 'class_id');
+    }
+
+    public function studentAcademicAssignments(): HasMany
+    {
+        return $this->hasMany(StudentAcademicAssignment::class, 'class_id');
+    }
+
+    public function attendanceSessions(): HasMany
+    {
+        return $this->hasMany(AttendanceSession::class, 'class_id');
+    }
+
+    public function classRoutines(): HasMany
+    {
+        return $this->hasMany(ClassRoutine::class, 'class_id');
+    }
+
+    public function examClassConfigs(): HasMany
+    {
+        return $this->hasMany(ExamClassConfig::class, 'class_id');
+    }
+
+    public function examSubjectConfigs(): HasMany
+    {
+        return $this->hasMany(ExamSubjectConfig::class, 'class_id');
+    }
+
+    public function markEntries(): HasMany
+    {
+        return $this->hasMany(MarkEntry::class, 'class_id');
+    }
 }

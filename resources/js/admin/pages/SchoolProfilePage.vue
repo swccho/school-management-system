@@ -243,7 +243,10 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue';
 import PageContainer from '../components/PageContainer.vue';
+import { useToast } from '../../shared/composables/useToast.js';
 import { getSchoolProfile, updateSchoolProfile } from '../services/schoolService.js';
+
+const toast = useToast();
 
 const loading = ref(true);
 const saving = ref(false);
@@ -351,6 +354,7 @@ async function handleSubmit() {
       data = await updateSchoolProfile(form);
     }
     success.value = 'Profile saved successfully.';
+    toast.success('Profile saved successfully.');
     if (data?.school) {
       form.logo_path = data.school.logo_path ?? '';
       form.favicon_path = data.school.favicon_path ?? '';
@@ -368,7 +372,9 @@ async function handleSubmit() {
   } catch (err) {
     const msg = err.response?.data?.message;
     const errors = err.response?.data?.errors;
-    error.value = msg || (errors ? Object.values(errors).flat().join(' ') : 'Failed to save profile.');
+    const errMsg = msg || (errors ? Object.values(errors).flat().join(' ') : 'Failed to save profile.');
+    error.value = errMsg;
+    toast.error(errMsg);
   } finally {
     saving.value = false;
   }

@@ -1,0 +1,112 @@
+---
+description: Use Flatpickr via shared DatePicker; settings-based date/time formatting; no native date inputs
+globs: resources/js/**/*.vue, resources/js/**/*.js
+alwaysApply: false
+---
+
+# Date and Time Input Rule
+
+This project uses **Flatpickr** for all date and datetime inputs. Do NOT use native HTML date inputs.
+
+**Avoid:**
+- `<input type="date">`
+- `<input type="datetime-local">`
+
+These create inconsistent UI across browsers and do not match the admin dashboard design.
+
+---
+
+## Standard Date Picker
+
+All forms that require date or datetime input must use the reusable shared date picker component.
+
+**Preferred shared component:** `resources/js/shared/components/form/DatePicker.vue`
+
+If the project is still admin-local only, use: `resources/js/admin/components/shared/DatePicker.vue`
+
+Do not create one-off date input implementations inside feature modules.
+
+---
+
+## Settings-Based Formatting
+
+All date/time input, display, parsing, and formatting must follow **System Settings**:
+
+- `date_format`
+- `time_format`
+- `timezone`
+
+Therefore:
+- Forms use the shared date picker configured from settings.
+- Tables, detail pages, and report filters display dates using the shared formatter.
+- Modules must not hardcode date/time format strings unless there is a strong technical reason.
+
+---
+
+## Shared Formatting Layer
+
+Use a centralized shared utility or composable for formatting.
+
+**Preferred:**
+- `resources/js/shared/utils/dateTime.js`
+- `resources/js/shared/composables/useDateTimeFormat.js`
+
+This layer must:
+- Read current system settings.
+- Provide consistent date, time, and datetime formatting.
+- Provide Flatpickr-compatible format mapping when needed.
+
+Do not duplicate formatting logic in feature modules.
+
+---
+
+## DatePicker Component Requirements
+
+The reusable date picker must support:
+- Single date selection; datetime selection when needed; optional range if required.
+- Disabled, clearable, placeholder, `v-model`.
+- Settings-based format configuration (accept date/time format settings, do not hardcode).
+
+---
+
+## Formatting Consistency
+
+All modules use the same shared date/time formatting. Examples: academic session dates, student DOB, attendance date, routine effective dates, exam start/end, result publish date, admission date, `created_at`/`updated_at`, report filters.
+
+Do not format dates manually in templates with ad-hoc format strings. Do not hardcode format strings per module.
+
+---
+
+## Timezone
+
+Displayed dates and times must respect the configured system timezone. Use the shared formatting layer for consistent presentation. Do not let each module handle timezone formatting independently.
+
+---
+
+## Flatpickr Rule
+
+Flatpickr is the standard. Use it only through the shared `DatePicker` component. Do not instantiate Flatpickr separately in feature modules unless extending the shared component.
+
+---
+
+## Styling
+
+Date inputs must match the admin dashboard: rounded input, consistent padding, dark mode support, focus ring, clear icon alignment, responsive layout. The Flatpickr popup must match the dark admin theme.
+
+---
+
+## When Working on Forms
+
+If a form has a date, time, or datetime field: use the shared `DatePicker` and connect it to settings-based formatting. Do not use native browser date controls.
+
+---
+
+## When Working on Display Pages
+
+If a page displays date, time, or datetime values: use the shared date/time formatter from system settings. Do not hardcode formatting in tables, cards, detail pages, badges, filters, or summary sections.
+
+---
+
+## Reusability
+
+If a new requirement needs a new date mode, datetime mode, range mode, or custom formatting: extend the shared `DatePicker` or shared date/time utility instead of building new implementations.

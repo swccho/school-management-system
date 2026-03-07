@@ -7,20 +7,26 @@ use App\Http\Requests\Admin\StoreSectionRequest;
 use App\Http\Requests\Admin\UpdateSectionRequest;
 use App\Models\School;
 use App\Models\Section;
+use App\Services\DateTimeFormatter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SectionController extends Controller
 {
+    public function __construct(
+        private DateTimeFormatter $dateTimeFormatter
+    ) {}
     public function index(Request $request): JsonResponse
     {
         if (! $request->user()->hasPermission('view-academic-setup')) {
             abort(403, 'Unauthorized.');
         }
 
-        $sections = Section::query()
-            ->with('schoolClass')
-            ->ordered()
+        $query = Section::query()->with('schoolClass');
+        if ($request->filled('class_id')) {
+            $query->where('class_id', $request->input('class_id'));
+        }
+        $sections = $query->ordered()
             ->get()
             ->map(fn (Section $s) => $this->sectionToArray($s));
 
@@ -78,7 +84,9 @@ class SectionController extends Controller
             'description' => $s->description,
             'status' => $s->status,
             'created_at' => $s->created_at->toIso8601String(),
+            'created_at_formatted' => $this->dateTimeFormatter->formatDateTime($s->created_at),
             'updated_at' => $s->updated_at->toIso8601String(),
+            'updated_at_formatted' => $this->dateTimeFormatter->formatDateTime($s->updated_at),
         ];
     }
 }

@@ -116,7 +116,10 @@
 import { onMounted, ref } from 'vue';
 import PageContainer from '../components/PageContainer.vue';
 import SubjectForm from '../components/SubjectForm.vue';
+import { useToast } from '../../shared/composables/useToast.js';
 import { getSubjects } from '../services/subjectService.js';
+
+const toast = useToast();
 
 const loading = ref(true);
 const error = ref(null);
@@ -136,6 +139,7 @@ function openEditModal(subj) {
 
 function onSaved() {
   fetchSubjects();
+  toast.success(editingSubject.value ? 'Subject updated successfully.' : 'Subject created successfully.');
 }
 
 async function fetchSubjects() {

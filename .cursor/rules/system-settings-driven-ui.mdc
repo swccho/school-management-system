@@ -1,0 +1,34 @@
+---
+description: Use system settings for date, time, timezone, language, currency; no hardcoded formatting in features
+globs: resources/js/**/*.vue, resources/js/**/*.js, resources/js/**/*.ts
+alwaysApply: false
+---
+
+# System Settings Driven UI Rule
+
+Whenever **date**, **time**, **datetime**, **timezone**, **language**, or **currency** formatting is needed in the frontend, use the **current system settings** as the source of truth.
+
+---
+
+## Do Not
+
+- Hardcode format strings (e.g. `'DD/MM/YYYY'`, `'h:mm A'`, `'$0,0.00'`) inside feature modules.
+- Implement one-off formatting logic in pages or components.
+- Let each module decide its own locale, timezone, or number/currency format.
+
+---
+
+## Do
+
+- **Use shared utilities, composables, or components** that read from system settings.
+- Centralize formatting in a shared layer, e.g.:
+  - `resources/js/shared/utils/` (e.g. `dateTime.js`, `currency.js`, `i18n.js`)
+  - `resources/js/shared/composables/` (e.g. `useDateTimeFormat.js`, `useCurrencyFormat.js`)
+  - `resources/js/shared/components/` (e.g. `DatePicker.vue`, any locale-aware formatters)
+- Have the shared layer consume settings such as: `date_format`, `time_format`, `timezone`, `locale`, `currency`, `currency_symbol`, etc.
+
+---
+
+## Scope
+
+Applies to: tables, forms, filters, detail pages, reports, badges, and any UI that displays or edits dates, times, numbers, or text that depends on locale/language/currency. For date/time inputs specifically, also follow the **Date and Time Input Rule** (shared DatePicker, Flatpickr, settings-based config).

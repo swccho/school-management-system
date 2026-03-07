@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\School;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -17,9 +18,18 @@ class StoreAcademicSessionRequest extends FormRequest
      */
     public function rules(): array
     {
+        $schoolId = School::first()?->id;
+
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('academic_sessions', 'name')],
-            'code' => ['nullable', 'string', 'max:50'],
+            'code' => [
+                'nullable',
+                'string',
+                'max:50',
+                Rule::unique('academic_sessions', 'code')->where(function ($q) use ($schoolId) {
+                    $schoolId === null ? $q->whereNull('school_id') : $q->where('school_id', $schoolId);
+                }),
+            ],
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'status' => ['nullable', 'string', Rule::in(['active', 'inactive', 'archived'])],

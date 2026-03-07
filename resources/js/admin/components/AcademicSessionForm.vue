@@ -28,7 +28,7 @@
           </p>
 
           <div>
-            <label for="session-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</label>
+            <label for="session-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name <span class="text-red-500">*</span></label>
             <input
               id="session-name"
               v-model="form.name"
@@ -39,34 +39,36 @@
           </div>
           <div>
             <label for="session-code" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Code</label>
-            <input
-              id="session-code"
-              v-model="form.code"
-              type="text"
-              class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-            />
+            <div class="mt-1 flex gap-2">
+              <input
+                id="session-code"
+                v-model="form.code"
+                type="text"
+                class="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+              <button
+                type="button"
+                :disabled="generatingCode"
+                class="shrink-0 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                @click="handleGenerateCode"
+              >
+                {{ generatingCode ? 'Generating…' : 'Generate' }}
+              </button>
+            </div>
           </div>
           <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="session-start" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Start date</label>
-              <input
-                id="session-start"
-                v-model="form.start_date"
-                type="date"
-                required
-                class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-            </div>
-            <div>
-              <label for="session-end" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">End date</label>
-              <input
-                id="session-end"
-                v-model="form.end_date"
-                type="date"
-                required
-                class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-            </div>
+            <DatePicker
+              id="session-start"
+              v-model="form.start_date"
+              label="Start date"
+              required
+            />
+            <DatePicker
+              id="session-end"
+              v-model="form.end_date"
+              label="End date"
+              required
+            />
           </div>
           <div>
             <label for="session-status" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Status</label>
@@ -115,7 +117,8 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
-import { createSession, updateSession } from '../services/academicSessionService.js';
+import DatePicker from '../../shared/components/form/DatePicker.vue';
+import { createSession, updateSession, generateCode } from '../services/academicSessionService.js';
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -136,6 +139,7 @@ const form = reactive({
 });
 
 const saving = ref(false);
+const generatingCode = ref(false);
 const formError = ref(null);
 
 function resetForm() {
@@ -171,6 +175,24 @@ watch(
   },
   { immediate: true }
 );
+
+async function handleGenerateCode() {
+  generatingCode.value = true;
+  try {
+    const payload = {
+      name: form.name,
+      start_date: form.start_date,
+      end_date: form.end_date,
+    };
+    if (props.session?.id) payload.exclude_id = props.session.id;
+    const result = await generateCode(payload);
+    form.code = result?.data?.code ?? result?.code ?? '';
+  } catch {
+    // Silently ignore; user can enter code manually
+  } finally {
+    generatingCode.value = false;
+  }
+}
 
 async function handleSubmit() {
   saving.value = true;

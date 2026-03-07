@@ -58,7 +58,7 @@
                   {{ sec.status }}
                 </span>
               </td>
-              <td class="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">{{ formatDate(sec.updated_at) }}</td>
+              <td class="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">{{ sec.updated_at_formatted ?? '—' }}</td>
               <td class="px-4 py-3">
                 <button
                   type="button"
@@ -87,23 +87,16 @@
 import { onMounted, ref } from 'vue';
 import PageContainer from '../components/PageContainer.vue';
 import SectionForm from '../components/SectionForm.vue';
+import { useToast } from '../../shared/composables/useToast.js';
 import { getSections } from '../services/sectionService.js';
+
+const toast = useToast();
 
 const loading = ref(true);
 const error = ref(null);
 const sections = ref([]);
 const modalOpen = ref(false);
 const editingSection = ref(null);
-
-function formatDate(value) {
-  if (!value) return '—';
-  try {
-    const d = new Date(value);
-    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch {
-    return value;
-  }
-}
 
 function openCreateModal() {
   editingSection.value = null;
@@ -117,6 +110,7 @@ function openEditModal(sec) {
 
 function onSaved() {
   fetchSections();
+  toast.success(editingSection.value ? 'Section updated successfully.' : 'Section created successfully.');
 }
 
 async function fetchSections() {

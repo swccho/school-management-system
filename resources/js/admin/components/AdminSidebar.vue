@@ -8,7 +8,7 @@
         {{ portalTitle }}
       </span>
     </div>
-    <nav class="flex-1 overflow-y-auto p-4">
+    <nav class="sidenav-scroll flex-1 overflow-y-auto p-4">
       <ul class="space-y-1">
         <template v-for="item in navItems" :key="item.name">
           <li v-if="item.isGroup" class="mt-4 pt-2 first:mt-0 first:pt-0">
@@ -60,6 +60,21 @@ const navItems = [
   { name: 'academic-classes', label: 'Classes', to: '/admin/academic/classes' },
   { name: 'academic-sections', label: 'Sections', to: '/admin/academic/sections' },
   { name: 'academic-subjects', label: 'Subjects', to: '/admin/academic/subjects' },
+  { name: 'teacher-subject-assignments', label: 'Teacher Subject Assignments', to: '/admin/academic/teacher-subject-assignments' },
+  { name: 'staff-group', label: 'Staff Management', to: null, isGroup: true },
+  { name: 'staff-staffs', label: 'Staff', to: '/admin/staff/staffs' },
+  { name: 'staff-teachers', label: 'Teachers', to: '/admin/staff/teachers' },
+  { name: 'staff-departments', label: 'Departments', to: '/admin/staff/departments' },
+  { name: 'staff-designations', label: 'Designations', to: '/admin/staff/designations' },
+  { name: 'students', label: 'Students', to: '/admin/students' },
+  { name: 'attendance', label: 'Attendance', to: '/admin/attendance' },
+  { name: 'routines', label: 'Class Routines', to: '/admin/routines' },
+  { name: 'exams-group', label: 'Examination', to: null, isGroup: true },
+  { name: 'exam-types', label: 'Exam Types', to: '/admin/exams/types' },
+  { name: 'exams', label: 'Exams', to: '/admin/exams' },
+  { name: 'marks-entry', label: 'Marks Entry', to: '/admin/marks-entry' },
+  { name: 'grade-scales', label: 'Grade Scales', to: '/admin/results/grade-scales' },
+  { name: 'results', label: 'Results', to: '/admin/results' },
   { name: 'access-control-group', label: 'Access Control', to: null, isGroup: true },
   { name: 'roles', label: 'Roles', to: '/admin/roles' },
   { name: 'permissions', label: 'Permissions', to: '/admin/permissions' },
@@ -75,3 +90,41 @@ function isActive(to) {
   return route.path.startsWith(to);
 }
 </script>
+
+<style scoped>
+/* Thin scrollbar for sidebar nav – light mode */
+.sidenav-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #d4d4d8 transparent;
+}
+
+.sidenav-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidenav-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidenav-scroll::-webkit-scrollbar-thumb {
+  background-color: #d4d4d8;
+  border-radius: 9999px;
+}
+
+.sidenav-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #a1a1aa;
+}
+
+/* Dark mode: match dark sidebar (zinc-900) */
+.dark .sidenav-scroll {
+  scrollbar-color: #52525b transparent;
+}
+
+.dark .sidenav-scroll::-webkit-scrollbar-thumb {
+  background-color: #52525b;
+}
+
+.dark .sidenav-scroll::-webkit-scrollbar-thumb:hover {
+  background-color: #71717a;
+}
+</style>

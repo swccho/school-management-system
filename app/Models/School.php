@@ -55,4 +55,19 @@ class School extends Model
     {
         return $this->hasMany(Subject::class);
     }
+
+    public function staffDepartments(): HasMany
+    {
+        return $this->hasMany(StaffDepartment::class, 'school_id');
+    }
+
+    public function staffs(): HasMany
+    {
+        return $this->hasMany(Staff::class, 'school_id');
+    }
+
+    public function teachers(): HasMany
+    {
+        return $this->hasMany(Teacher::class, 'school_id');
+    }
 }

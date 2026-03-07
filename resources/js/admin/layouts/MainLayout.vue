@@ -11,6 +11,29 @@
 </template>
 
 <script setup>
+import { onMounted, provide, ref } from 'vue';
 import AdminSidebar from '../components/AdminSidebar.vue';
 import AdminHeader from '../components/AdminHeader.vue';
+import { getSchoolSettings } from '../services/schoolService.js';
+
+const dateTimeSettings = ref({
+  date_format: 'Y-m-d',
+  time_format: 'H:i',
+  timezone: '',
+});
+
+provide('dateTimeSettings', dateTimeSettings);
+
+onMounted(async () => {
+  try {
+    const data = await getSchoolSettings();
+    dateTimeSettings.value = {
+      date_format: data.date_format || 'Y-m-d',
+      time_format: data.time_format || 'H:i',
+      timezone: data.timezone || '',
+    };
+  } catch {
+    // Keep defaults if settings fail to load
+  }
+});
 </script>

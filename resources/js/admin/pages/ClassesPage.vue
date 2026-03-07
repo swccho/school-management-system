@@ -54,7 +54,7 @@
                   {{ cls.status }}
                 </span>
               </td>
-              <td class="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">{{ formatDate(cls.updated_at) }}</td>
+              <td class="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">{{ cls.updated_at_formatted ?? '—' }}</td>
               <td class="px-4 py-3">
                 <button
                   type="button"
@@ -83,23 +83,16 @@
 import { onMounted, ref } from 'vue';
 import PageContainer from '../components/PageContainer.vue';
 import ClassForm from '../components/ClassForm.vue';
+import { useToast } from '../../shared/composables/useToast.js';
 import { getClasses } from '../services/classService.js';
+
+const toast = useToast();
 
 const loading = ref(true);
 const error = ref(null);
 const classes = ref([]);
 const modalOpen = ref(false);
 const editingClass = ref(null);
-
-function formatDate(value) {
-  if (!value) return '—';
-  try {
-    const d = new Date(value);
-    return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-  } catch {
-    return value;
-  }
-}
 
 function openCreateModal() {
   editingClass.value = null;
@@ -113,6 +106,7 @@ function openEditModal(cls) {
 
 function onSaved() {
   fetchClasses();
+  toast.success(editingClass.value ? 'Class updated successfully.' : 'Class created successfully.');
 }
 
 async function fetchClasses() {

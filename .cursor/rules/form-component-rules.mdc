@@ -1,0 +1,56 @@
+---
+description: Use SearchableSelect for relational/long-option form fields; when to use it vs plain select; consistency and styling
+globs: resources/js/**/*.vue
+alwaysApply: false
+---
+
+# Form Component Rules
+
+Apply these rules whenever building or updating forms in the project.
+
+## Global Select Rule
+
+Use the project’s reusable **searchable select** component for relational or long-option select fields.
+
+**Preferred component:** `SearchableSelect`
+
+Use this component instead of building one-off select/dropdown implementations when the field selects entities or from medium/large option lists.
+
+**Examples:** class selector, section selector, subject selector, teacher selector, student selector, role selector, department selector, designation selector.
+
+## When to Use SearchableSelect
+
+Use `SearchableSelect` by default when:
+
+- the field selects from dynamic data
+- the field selects related entities
+- the option list may grow
+- search would improve usability
+- consistent reusable form UX is preferred
+
+## When Plain Select Is Acceptable
+
+A normal non-searchable select is acceptable only when:
+
+- the option list is very small and static
+- the field has fewer than about 5 obvious choices
+- a native select provides better UX for the case
+
+**Examples:** status (active/inactive), yes/no, gender (small static list), simple enum-like fields.
+
+## Consistency Rule
+
+Do not create new custom searchable dropdown implementations in feature modules. Always reuse the shared searchable select component unless there is a strong technical reason not to. If a new use case needs additional behavior, extend the shared component instead of duplicating logic.
+
+## Styling and Integration
+
+- All searchable selects must follow the project’s established form styling and admin design system. Do not introduce visually inconsistent select widgets.
+- Integrate searchable selects with: labels, validation messages, disabled state, loading state, preselected values.
+
+## Reusability Rule
+
+If any feature needs selectable relational data:
+
+- Prefer reusing `SearchableSelect`
+- Normalize options for `labelKey` and `valueKey`
+- Keep form components consistent across modules
