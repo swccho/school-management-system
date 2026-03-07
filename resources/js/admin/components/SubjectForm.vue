@@ -7,7 +7,7 @@
     >
       <div class="absolute inset-0 bg-zinc-900/50" aria-hidden="true" />
       <div
-        class="relative w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 max-h-[90vh] overflow-y-auto"
+        class="sidenav-scroll relative w-full max-w-md rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="isEdit ? 'edit-subject-title' : 'add-subject-title'"
@@ -28,7 +28,7 @@
           </p>
 
           <div>
-            <label for="subject-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</label>
+            <label for="subject-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name <span class="text-red-500">*</span></label>
             <input
               id="subject-name"
               v-model="form.name"

@@ -8,13 +8,15 @@ use App\Http\Requests\Admin\UpdateTeacherRequest;
 use App\Models\School;
 use App\Models\Teacher;
 use App\Services\DateTimeFormatter;
+use App\Services\TeacherService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TeacherController extends Controller
 {
     public function __construct(
-        private DateTimeFormatter $dateTimeFormatter
+        private DateTimeFormatter $dateTimeFormatter,
+        private TeacherService $teacherService
     ) {}
     public function index(Request $request): JsonResponse
     {
@@ -22,10 +24,25 @@ class TeacherController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $teachers = Teacher::query()
-            ->with('staff.department', 'staff.designation')
-            ->get()
-            ->map(fn (Teacher $t) => $this->toArray($t));
+        $query = Teacher::query()->with('staff.department', 'staff.designation');
+
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $term = '%' . $request->input('search') . '%';
+            $q->where(function ($sub) use ($term) {
+                $sub->where('teacher_code', 'like', $term)
+                    ->orWhereHas('staff', fn ($s) => $s->where('employee_id', 'like', $term)
+                        ->orWhere('first_name', 'like', $term)
+                        ->orWhere('last_name', 'like', $term));
+            });
+        });
+
+        $query->when($request->filled('status'), fn ($q) => $q->where('status', $request->input('status')));
+
+        $query->when($request->filled('department_id'), fn ($q) => $q->whereHas('staff', fn ($s) => $s->where('department_id', $request->input('department_id'))));
+
+        $query->when($request->filled('designation_id'), fn ($q) => $q->whereHas('staff', fn ($s) => $s->where('designation_id', $request->input('designation_id'))));
+
+        $teachers = $query->get()->map(fn (Teacher $t) => $this->toArray($t));
 
         return response()->json($teachers);
     }
@@ -33,7 +50,11 @@ class TeacherController extends Controller
     public function store(StoreTeacherRequest $request): JsonResponse
     {
         $school = School::first();
-        $teacher = Teacher::create(array_merge($request->validated(), [
+        $validated = $request->validated();
+        if (blank($validated['teacher_code'] ?? null)) {
+            $validated['teacher_code'] = $this->teacherService->generateTeacherCode($school?->id);
+        }
+        $teacher = Teacher::create(array_merge($validated, [
             'school_id' => $school?->id,
         ]));
 
@@ -58,7 +79,7 @@ class TeacherController extends Controller
 
     public function update(UpdateTeacherRequest $request, Teacher $teacher): JsonResponse
     {
-        $teacher->update($request->validated());
+        $teacher->update(collect($request->validated())->except('teacher_code')->all());
         $teacher->load('staff.department', 'staff.designation');
 
         return response()->json([

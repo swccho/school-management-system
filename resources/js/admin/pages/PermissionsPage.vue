@@ -19,7 +19,7 @@
           <h3 class="mb-3 text-sm font-semibold uppercase tracking-wide text-zinc-500 dark:text-zinc-400">
             {{ group.module }}
           </h3>
-          <div class="overflow-x-auto">
+          <div class="sidenav-scroll overflow-x-auto">
             <table class="w-full min-w-[400px]">
               <thead>
                 <tr class="border-b border-zinc-100 dark:border-zinc-800">

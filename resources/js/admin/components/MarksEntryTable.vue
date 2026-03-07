@@ -1,6 +1,6 @@
 <template>
   <div class="rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
-    <div class="overflow-x-auto">
+    <div class="sidenav-scroll overflow-x-auto">
       <table class="w-full min-w-[500px]">
         <thead>
           <tr class="border-b border-zinc-200 dark:border-zinc-800">

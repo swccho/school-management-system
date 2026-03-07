@@ -46,7 +46,7 @@
             </p>
           </div>
           <div>
-            <label for="section-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Section name</label>
+            <label for="section-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Section name <span class="text-red-500">*</span></label>
             <input
               id="section-name"
               v-model="form.name"
@@ -58,12 +58,22 @@
           </div>
           <div>
             <label for="section-code" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Code</label>
-            <input
-              id="section-code"
-              v-model="form.code"
-              type="text"
-              class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-            />
+            <div class="mt-1 flex gap-2">
+              <input
+                id="section-code"
+                v-model="form.code"
+                type="text"
+                class="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+              <button
+                type="button"
+                :disabled="generatingCode"
+                class="shrink-0 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                @click="handleGenerateCode"
+              >
+                {{ generatingCode ? 'Generating…' : 'Generate' }}
+              </button>
+            </div>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
@@ -135,7 +145,7 @@
 import { computed, reactive, ref, watch } from 'vue';
 import SearchableSelect from '../../shared/components/form/SearchableSelect.vue';
 import { getClasses } from '../services/classService.js';
-import { createSection, updateSection } from '../services/sectionService.js';
+import { createSection, generateCode, updateSection } from '../services/sectionService.js';
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -157,9 +167,26 @@ const form = reactive({
 });
 
 const saving = ref(false);
+const generatingCode = ref(false);
 const formError = ref(null);
 const classes = ref([]);
 const classesLoading = ref(false);
+
+async function handleGenerateCode() {
+  generatingCode.value = true;
+  formError.value = null;
+  try {
+    const data = await generateCode({ exclude_id: props.section?.id ?? undefined });
+    if (data?.data?.code) {
+      form.code = data.data.code;
+    }
+  } catch (err) {
+    const msg = err.response?.data?.message;
+    formError.value = msg || 'Failed to generate code.';
+  } finally {
+    generatingCode.value = false;
+  }
+}
 
 async function loadClasses() {
   classesLoading.value = true;

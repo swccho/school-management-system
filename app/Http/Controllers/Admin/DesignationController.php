@@ -8,13 +8,15 @@ use App\Http\Requests\Admin\UpdateDesignationRequest;
 use App\Models\Designation;
 use App\Models\School;
 use App\Services\DateTimeFormatter;
+use App\Services\DesignationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class DesignationController extends Controller
 {
     public function __construct(
-        private DateTimeFormatter $dateTimeFormatter
+        private DateTimeFormatter $dateTimeFormatter,
+        private DesignationService $designationService
     ) {}
     public function index(Request $request): JsonResponse
     {
@@ -22,9 +24,20 @@ class DesignationController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $designations = Designation::query()
-            ->with('department')
-            ->orderBy('name')
+        $query = Designation::query()->with('department');
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = $request->input('search');
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
+        });
+        $query->when(
+            $request->filled('status') && in_array($request->input('status'), ['active', 'inactive', 'archived'], true),
+            fn ($q) => $q->where('status', $request->input('status'))
+        );
+        $query->when($request->filled('department_id'), fn ($q) => $q->where('department_id', $request->input('department_id')));
+        $designations = $query->orderBy('name')
             ->get()
             ->map(fn (Designation $d) => $this->toArray($d));
 
@@ -36,6 +49,7 @@ class DesignationController extends Controller
         $school = School::first();
         $designation = Designation::create(array_merge($request->validated(), [
             'school_id' => $school?->id,
+            'code' => $this->designationService->generateDesignationCode($school?->id),
         ]));
 
         $designation->load('department');
@@ -48,7 +62,9 @@ class DesignationController extends Controller
 
     public function update(UpdateDesignationRequest $request, Designation $designation): JsonResponse
     {
-        $designation->update($request->validated());
+        $payload = $request->validated();
+        unset($payload['code']);
+        $designation->update($payload);
         $designation->load('department');
 
         return response()->json([

@@ -19,7 +19,6 @@ class StoreStaffDepartmentRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255'],
-            'code' => ['nullable', 'string', 'max:50'],
             'description' => ['nullable', 'string', 'max:500'],
             'status' => ['nullable', 'string', Rule::in(['active', 'inactive', 'archived'])],
         ];

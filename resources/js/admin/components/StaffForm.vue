@@ -7,7 +7,7 @@
     >
       <div class="absolute inset-0 bg-zinc-900/50" aria-hidden="true" />
       <div
-        class="relative w-full max-w-lg rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 max-h-[90vh] overflow-y-auto"
+        class="sidenav-scroll relative w-full max-w-2xl rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 max-h-[95vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="isEdit ? 'edit-staff-title' : 'add-staff-title'"
@@ -27,33 +27,21 @@
             {{ formError }}
           </p>
 
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label for="staff-employee-id" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Employee ID</label>
-              <input
-                id="staff-employee-id"
-                v-model="form.employee_id"
-                type="text"
-                required
-                class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              />
-            </div>
-            <div>
-              <label for="staff-type" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Employee type</label>
-              <select
-                id="staff-type"
-                v-model="form.employee_type"
-                required
-                class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-              >
-                <option value="teacher">Teacher</option>
-                <option value="staff">Staff</option>
-              </select>
-            </div>
+          <div>
+            <label for="staff-type" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Employee type <span class="text-red-500">*</span></label>
+            <select
+              id="staff-type"
+              v-model="form.employee_type"
+              required
+              class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            >
+              <option value="teacher">Teacher</option>
+              <option value="staff">Staff</option>
+            </select>
           </div>
           <div class="grid grid-cols-2 gap-4">
             <div>
-              <label for="staff-first-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">First name</label>
+              <label for="staff-first-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">First name <span class="text-red-500">*</span></label>
               <input
                 id="staff-first-name"
                 v-model="form.first_name"
@@ -214,7 +202,6 @@ const emit = defineEmits(['update:modelValue', 'close', 'saved']);
 const isEdit = computed(() => !!props.staff);
 
 const form = reactive({
-  employee_id: '',
   first_name: '',
   last_name: '',
   gender: '',
@@ -251,7 +238,6 @@ async function loadOptions() {
 }
 
 function resetForm() {
-  form.employee_id = '';
   form.first_name = '';
   form.last_name = '';
   form.gender = '';
@@ -272,7 +258,6 @@ function assign(s) {
     resetForm();
     return;
   }
-  form.employee_id = s.employee_id ?? '';
   form.first_name = s.first_name ?? '';
   form.last_name = s.last_name ?? '';
   form.gender = s.gender ?? '';
@@ -303,7 +288,6 @@ async function handleSubmit() {
   saving.value = true;
   formError.value = null;
   const payload = {
-    employee_id: form.employee_id,
     first_name: form.first_name,
     last_name: form.last_name || null,
     gender: form.gender || null,

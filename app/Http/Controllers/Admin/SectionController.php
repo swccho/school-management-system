@@ -8,14 +8,17 @@ use App\Http\Requests\Admin\UpdateSectionRequest;
 use App\Models\School;
 use App\Models\Section;
 use App\Services\DateTimeFormatter;
+use App\Services\SectionService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SectionController extends Controller
 {
     public function __construct(
-        private DateTimeFormatter $dateTimeFormatter
+        private DateTimeFormatter $dateTimeFormatter,
+        private SectionService $sectionService
     ) {}
+
     public function index(Request $request): JsonResponse
     {
         if (! $request->user()->hasPermission('view-academic-setup')) {
@@ -26,11 +29,39 @@ class SectionController extends Controller
         if ($request->filled('class_id')) {
             $query->where('class_id', $request->input('class_id'));
         }
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = $request->input('search');
+            $q->where(function ($sub) use ($search) {
+                $sub->where('sections.name', 'like', "%{$search}%")
+                    ->orWhere('sections.code', 'like', "%{$search}%");
+            });
+        });
+        $query->when(
+            $request->filled('status') && in_array($request->input('status'), ['active', 'inactive', 'archived'], true),
+            fn ($q) => $q->where('sections.status', $request->input('status'))
+        );
         $sections = $query->ordered()
             ->get()
             ->map(fn (Section $s) => $this->sectionToArray($s));
 
         return response()->json($sections);
+    }
+
+    public function generateCode(Request $request): JsonResponse
+    {
+        if (! $request->user()->hasPermission('manage-sections')) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $schoolId = $request->input('school_id') ? (int) $request->input('school_id') : School::first()?->id;
+        $excludeId = $request->input('exclude_id') ? (int) $request->input('exclude_id') : null;
+
+        $code = $this->sectionService->generateCode($schoolId, $excludeId);
+
+        return response()->json([
+            'success' => true,
+            'data' => ['code' => $code],
+        ]);
     }
 
     public function store(StoreSectionRequest $request): JsonResponse

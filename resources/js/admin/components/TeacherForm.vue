@@ -50,15 +50,6 @@
           </div>
 
           <div>
-            <label for="teacher-code" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Teacher code</label>
-            <input
-              id="teacher-code"
-              v-model="form.teacher_code"
-              type="text"
-              class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-            />
-          </div>
-          <div>
             <label for="teacher-qualification" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Qualification</label>
             <input
               id="teacher-qualification"
@@ -149,7 +140,6 @@ const isEdit = computed(() => !!props.teacher);
 
 const form = reactive({
   staff_id: '',
-  teacher_code: '',
   qualification: '',
   specialization: '',
   experience_years: null,
@@ -187,7 +177,6 @@ async function loadStaffs() {
 
 function resetForm() {
   form.staff_id = '';
-  form.teacher_code = '';
   form.qualification = '';
   form.specialization = '';
   form.experience_years = null;
@@ -201,7 +190,6 @@ function assign(t) {
     resetForm();
     return;
   }
-  form.teacher_code = t.teacher_code ?? '';
   form.qualification = t.qualification ?? '';
   form.specialization = t.specialization ?? '';
   form.experience_years = t.experience_years ?? null;
@@ -225,7 +213,6 @@ async function handleSubmit() {
   saving.value = true;
   formError.value = null;
   const payload = {
-    teacher_code: form.teacher_code || null,
     qualification: form.qualification || null,
     specialization: form.specialization || null,
     experience_years: form.experience_years === '' || form.experience_years == null ? null : Number(form.experience_years),

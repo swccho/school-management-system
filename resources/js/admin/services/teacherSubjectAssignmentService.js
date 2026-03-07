@@ -10,7 +10,10 @@ const api = axios.create({
 });
 
 export async function getAssignments(params = {}) {
-  const { data } = await api.get('/admin/teacher-subject-assignments', { params });
+  const clean = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v != null && v !== '')
+  );
+  const { data } = await api.get('/admin/teacher-subject-assignments', { params: clean });
   return data;
 }
 

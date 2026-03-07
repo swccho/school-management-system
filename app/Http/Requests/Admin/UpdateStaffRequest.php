@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Admin;
 
-use App\Models\School;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -18,16 +17,7 @@ class UpdateStaffRequest extends FormRequest
      */
     public function rules(): array
     {
-        $staff = $this->route('staff');
-        $schoolId = School::first()?->id;
-
         return [
-            'employee_id' => [
-                'required',
-                'string',
-                'max:50',
-                Rule::unique('staffs', 'employee_id')->where('school_id', $schoolId)->ignore($staff->id),
-            ],
             'first_name' => ['required', 'string', 'max:255'],
             'last_name' => ['nullable', 'string', 'max:255'],
             'gender' => ['nullable', 'string', Rule::in(['male', 'female', 'other'])],

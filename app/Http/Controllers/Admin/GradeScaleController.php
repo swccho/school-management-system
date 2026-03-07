@@ -22,10 +22,16 @@ class GradeScaleController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $scales = GradeScale::with('gradeScaleItems')
-            ->orderBy('name')
-            ->get()
-            ->map(fn (GradeScale $g) => $this->gradeScaleToArray($g));
+        $query = GradeScale::with('gradeScaleItems')->orderBy('name');
+
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $term = '%' . $request->input('search') . '%';
+            $q->where('name', 'like', $term);
+        });
+
+        $query->when($request->filled('status'), fn ($q) => $q->where('status', $request->input('status')));
+
+        $scales = $query->get()->map(fn (GradeScale $g) => $this->gradeScaleToArray($g));
 
         return response()->json($scales);
     }

@@ -45,10 +45,12 @@ Route::prefix('admin')->group(function () {
         Route::post('academic-sessions/{academic_session}/set-current', [AcademicSessionController::class, 'setCurrent']);
         Route::get('classes', [SchoolClassController::class, 'index']);
         Route::post('classes', [SchoolClassController::class, 'store']);
+        Route::post('classes/generate-code', [SchoolClassController::class, 'generateCode']);
         Route::get('classes/{school_class}', [SchoolClassController::class, 'show']);
         Route::put('classes/{school_class}', [SchoolClassController::class, 'update']);
         Route::get('sections', [SectionController::class, 'index']);
         Route::post('sections', [SectionController::class, 'store']);
+        Route::post('sections/generate-code', [SectionController::class, 'generateCode']);
         Route::get('sections/{section}', [SectionController::class, 'show']);
         Route::put('sections/{section}', [SectionController::class, 'update']);
         Route::get('subjects', [SubjectController::class, 'index']);

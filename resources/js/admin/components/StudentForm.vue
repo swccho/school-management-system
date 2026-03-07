@@ -7,7 +7,7 @@
     >
       <div class="absolute inset-0 bg-zinc-900/50" aria-hidden="true" />
       <div
-        class="relative w-full max-w-2xl rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 max-h-[90vh] overflow-y-auto"
+        class="sidenav-scroll relative w-full max-w-2xl rounded-xl border border-zinc-200 bg-white p-6 shadow-xl dark:border-zinc-800 dark:bg-zinc-900 max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-modal="true"
         :aria-labelledby="isEdit ? 'edit-student-title' : 'add-student-title'"
@@ -31,7 +31,7 @@
             <h3 class="text-sm font-semibold text-zinc-800 dark:text-zinc-200">Basic information</h3>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label for="student-admission" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Admission no</label>
+                <label for="student-admission" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Admission no <span class="text-red-500">*</span></label>
                 <input
                   id="student-admission"
                   v-model="form.admission_no"
@@ -55,7 +55,7 @@
             </div>
             <div class="grid grid-cols-2 gap-4">
               <div>
-                <label for="student-first-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">First name</label>
+                <label for="student-first-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">First name <span class="text-red-500">*</span></label>
                 <input
                   id="student-first-name"
                   v-model="form.first_name"

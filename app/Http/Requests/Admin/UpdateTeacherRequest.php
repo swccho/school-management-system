@@ -20,7 +20,6 @@ class UpdateTeacherRequest extends FormRequest
         $teacher = $this->route('teacher');
 
         return [
-            'teacher_code' => ['nullable', 'string', 'max:50'],
             'qualification' => ['nullable', 'string', 'max:255'],
             'specialization' => ['nullable', 'string', 'max:255'],
             'experience_years' => ['nullable', 'integer', 'min:0', 'max:32767'],

@@ -35,7 +35,7 @@ class StudentGuardian extends Model
 
     public function students(): BelongsToMany
     {
-        return $this->belongsToMany(Student::class, 'student_guardian_links')
+        return $this->belongsToMany(Student::class, 'student_guardian_links', 'guardian_id', 'student_id')
             ->withPivot('relationship_label', 'is_primary', 'can_receive_sms', 'can_receive_email', 'can_login')
             ->withTimestamps()
             ->using(StudentGuardianLink::class);

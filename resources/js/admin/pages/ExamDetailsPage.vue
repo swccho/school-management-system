@@ -45,7 +45,7 @@
 
         <div class="rounded-xl border border-zinc-200 bg-white p-4 dark:border-zinc-800 dark:bg-zinc-900">
           <p class="mb-3 text-sm font-medium text-zinc-700 dark:text-zinc-300">Subject configuration</p>
-          <div class="overflow-x-auto">
+          <div class="sidenav-scroll overflow-x-auto">
             <table class="w-full min-w-[600px]">
               <thead>
                 <tr class="border-b border-zinc-200 dark:border-zinc-800">

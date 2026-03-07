@@ -27,6 +27,13 @@ class ExamController extends Controller
 
         $query = Exam::query()->with(['academicSession', 'examType']);
 
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $term = '%' . $request->input('search') . '%';
+            $q->where(function ($sub) use ($term) {
+                $sub->where('name', 'like', $term)->orWhere('code', 'like', $term);
+            });
+        });
+
         if ($request->filled('academic_session_id')) {
             $query->where('academic_session_id', $request->input('academic_session_id'));
         }

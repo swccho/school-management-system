@@ -8,13 +8,15 @@ use App\Http\Requests\Admin\UpdateSchoolClassRequest;
 use App\Models\School;
 use App\Models\SchoolClass;
 use App\Services\DateTimeFormatter;
+use App\Services\SchoolClassService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class SchoolClassController extends Controller
 {
     public function __construct(
-        private DateTimeFormatter $dateTimeFormatter
+        private DateTimeFormatter $dateTimeFormatter,
+        private SchoolClassService $schoolClassService
     ) {}
     public function index(Request $request): JsonResponse
     {
@@ -23,6 +25,17 @@ class SchoolClassController extends Controller
         }
 
         $classes = SchoolClass::query()
+            ->when($request->filled('search'), function ($q) use ($request) {
+                $search = $request->search;
+                $q->where(function ($sub) use ($search) {
+                    $sub->where('name', 'like', "%{$search}%")
+                        ->orWhere('code', 'like', "%{$search}%");
+                });
+            })
+            ->when(
+                $request->filled('status') && in_array($request->status, ['active', 'inactive', 'archived'], true),
+                fn ($q) => $q->where('status', $request->status)
+            )
             ->ordered()
             ->get()
             ->map(fn (SchoolClass $c) => $this->classToArray($c));
@@ -33,14 +46,47 @@ class SchoolClassController extends Controller
     public function store(StoreSchoolClassRequest $request): JsonResponse
     {
         $school = School::first();
-        $schoolClass = SchoolClass::create(array_merge($request->validated(), [
-            'school_id' => $school?->id,
+        $schoolId = $school?->id;
+
+        $validated = $request->validated();
+        if (blank($validated['code'] ?? null)) {
+            $validated['code'] = $this->schoolClassService->generateCode(
+                $validated['name'] ?? null,
+                $validated['numeric_level'] ?? null,
+                null,
+                $schoolId
+            );
+        }
+
+        $schoolClass = SchoolClass::create(array_merge($validated, [
+            'school_id' => $schoolId,
         ]));
 
         return response()->json([
             'message' => 'Class created.',
             'class' => $this->classToArray($schoolClass),
         ], 201);
+    }
+
+    public function generateCode(Request $request): JsonResponse
+    {
+        if (! $request->user()->hasPermission('manage-classes')) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $schoolId = $request->input('school_id') ? (int) $request->input('school_id') : School::first()?->id;
+
+        $code = $this->schoolClassService->generateCode(
+            $request->input('name'),
+            $request->input('numeric_level') ? (int) $request->input('numeric_level') : null,
+            $request->input('exclude_id') ? (int) $request->input('exclude_id') : null,
+            $schoolId
+        );
+
+        return response()->json([
+            'success' => true,
+            'data' => ['code' => $code],
+        ]);
     }
 
     public function show(Request $request, SchoolClass $school_class): JsonResponse

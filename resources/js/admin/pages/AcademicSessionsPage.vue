@@ -62,7 +62,7 @@
       <div v-else-if="sessions.length === 0" class="p-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
         {{ hasActiveFilters ? 'No sessions match your filters.' : 'No sessions yet. Add one to get started.' }}
       </div>
-      <div v-else class="overflow-x-auto">
+      <div v-else class="sidenav-scroll overflow-x-auto">
         <table class="w-full min-w-[600px]">
           <thead>
             <tr class="border-b border-zinc-200 dark:border-zinc-800">

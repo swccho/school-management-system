@@ -37,7 +37,7 @@
         />
       </div>
       <div>
-        <label for="exam-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</label>
+        <label for="exam-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name <span class="text-red-500">*</span></label>
         <input
           id="exam-name"
           v-model="form.name"

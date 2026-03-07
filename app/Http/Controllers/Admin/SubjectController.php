@@ -22,8 +22,24 @@ class SubjectController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $subjects = Subject::query()
-            ->ordered()
+        $query = Subject::query();
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = $request->input('search');
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('short_name', 'like', "%{$search}%");
+            });
+        });
+        $query->when(
+            $request->filled('status') && in_array($request->input('status'), ['active', 'inactive', 'archived'], true),
+            fn ($q) => $q->where('status', $request->input('status'))
+        );
+        $query->when(
+            $request->filled('type') && in_array($request->input('type'), ['general', 'elective', 'practical'], true),
+            fn ($q) => $q->where('type', $request->input('type'))
+        );
+        $subjects = $query->ordered()
             ->get()
             ->map(fn (Subject $s) => $this->subjectToArray($s));
 

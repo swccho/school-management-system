@@ -9,8 +9,11 @@ const api = axios.create({
   },
 });
 
-export async function getSubjects() {
-  const { data } = await api.get('/admin/subjects');
+export async function getSubjects(params = {}) {
+  const clean = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v != null && v !== '')
+  );
+  const { data } = await api.get('/admin/subjects', { params: clean });
   return data;
 }
 

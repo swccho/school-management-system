@@ -9,8 +9,11 @@ const api = axios.create({
   },
 });
 
-export async function getExamTypes() {
-  const { data } = await api.get('/admin/exam-types');
+export async function getExamTypes(params = {}) {
+  const clean = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v != null && v !== '')
+  );
+  const { data } = await api.get('/admin/exam-types', { params: clean });
   return data;
 }
 

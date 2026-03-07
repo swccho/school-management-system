@@ -9,8 +9,11 @@ const api = axios.create({
   },
 });
 
-export async function getDesignations() {
-  const { data } = await api.get('/admin/designations');
+export async function getDesignations(params = {}) {
+  const clean = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v != null && v !== '')
+  );
+  const { data } = await api.get('/admin/designations', { params: clean });
   return data;
 }
 

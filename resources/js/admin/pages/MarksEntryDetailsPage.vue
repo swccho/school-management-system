@@ -53,7 +53,7 @@
           <div v-if="!detail?.entries?.length" class="p-8 text-center text-sm text-zinc-500 dark:text-zinc-400">
             No marks entered for this context.
           </div>
-          <div v-else class="overflow-x-auto">
+          <div v-else class="sidenav-scroll overflow-x-auto">
             <table class="w-full min-w-[400px]">
               <thead>
                 <tr class="border-b border-zinc-200 dark:border-zinc-800">

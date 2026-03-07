@@ -10,7 +10,10 @@ const api = axios.create({
 });
 
 export async function getStudents(params = {}) {
-  const { data } = await api.get('/admin/students', { params });
+  const clean = Object.fromEntries(
+    Object.entries(params).filter(([, v]) => v != null && v !== '')
+  );
+  const { data } = await api.get('/admin/students', { params: clean });
   return data;
 }
 

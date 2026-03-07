@@ -8,13 +8,15 @@ use App\Http\Requests\Admin\UpdateStaffDepartmentRequest;
 use App\Models\School;
 use App\Models\StaffDepartment;
 use App\Services\DateTimeFormatter;
+use App\Services\StaffDepartmentService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class StaffDepartmentController extends Controller
 {
     public function __construct(
-        private DateTimeFormatter $dateTimeFormatter
+        private DateTimeFormatter $dateTimeFormatter,
+        private StaffDepartmentService $staffDepartmentService
     ) {}
     public function index(Request $request): JsonResponse
     {
@@ -22,8 +24,19 @@ class StaffDepartmentController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $departments = StaffDepartment::query()
-            ->orderBy('name')
+        $query = StaffDepartment::query();
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = $request->input('search');
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
+        });
+        $query->when(
+            $request->filled('status') && in_array($request->input('status'), ['active', 'inactive', 'archived'], true),
+            fn ($q) => $q->where('status', $request->input('status'))
+        );
+        $departments = $query->orderBy('name')
             ->get()
             ->map(fn (StaffDepartment $d) => $this->toArray($d));
 
@@ -35,6 +48,7 @@ class StaffDepartmentController extends Controller
         $school = School::first();
         $department = StaffDepartment::create(array_merge($request->validated(), [
             'school_id' => $school?->id,
+            'code' => $this->staffDepartmentService->generateDepartmentCode($school?->id),
         ]));
 
         return response()->json([
@@ -45,7 +59,9 @@ class StaffDepartmentController extends Controller
 
     public function update(UpdateStaffDepartmentRequest $request, StaffDepartment $staff_department): JsonResponse
     {
-        $staff_department->update($request->validated());
+        $payload = $request->validated();
+        unset($payload['code']);
+        $staff_department->update($payload);
 
         return response()->json([
             'message' => 'Department updated.',

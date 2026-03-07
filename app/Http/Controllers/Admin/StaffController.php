@@ -8,13 +8,15 @@ use App\Http\Requests\Admin\UpdateStaffRequest;
 use App\Models\School;
 use App\Models\Staff;
 use App\Services\DateTimeFormatter;
+use App\Services\StaffService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class StaffController extends Controller
 {
     public function __construct(
-        private DateTimeFormatter $dateTimeFormatter
+        private DateTimeFormatter $dateTimeFormatter,
+        private StaffService $staffService
     ) {}
     public function index(Request $request): JsonResponse
     {
@@ -23,6 +25,17 @@ class StaffController extends Controller
         }
 
         $query = Staff::query()->with(['department', 'designation']);
+
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $term = '%' . $request->input('search') . '%';
+            $q->where(function ($sub) use ($term) {
+                $sub->where('employee_id', 'like', $term)
+                    ->orWhere('first_name', 'like', $term)
+                    ->orWhere('last_name', 'like', $term)
+                    ->orWhere('email', 'like', $term)
+                    ->orWhere('phone', 'like', $term);
+            });
+        });
 
         if ($request->boolean('for_teacher')) {
             $query->whereDoesntHave('teacher');
@@ -49,8 +62,10 @@ class StaffController extends Controller
     public function store(StoreStaffRequest $request): JsonResponse
     {
         $school = School::first();
+        $employeeId = $this->staffService->generateEmployeeId($school?->id);
         $staff = Staff::create(array_merge($request->validated(), [
             'school_id' => $school?->id,
+            'employee_id' => $employeeId,
         ]));
 
         $staff->load(['department', 'designation']);
@@ -74,7 +89,7 @@ class StaffController extends Controller
 
     public function update(UpdateStaffRequest $request, Staff $staff): JsonResponse
     {
-        $staff->update($request->validated());
+        $staff->update(collect($request->validated())->except('employee_id')->all());
         $staff->load(['department', 'designation']);
 
         return response()->json([

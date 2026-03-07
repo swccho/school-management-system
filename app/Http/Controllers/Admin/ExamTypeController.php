@@ -23,8 +23,19 @@ class ExamTypeController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $types = ExamType::query()
-            ->orderBy('name')
+        $query = ExamType::query();
+        $query->when($request->filled('search'), function ($q) use ($request) {
+            $search = $request->input('search');
+            $q->where(function ($sub) use ($search) {
+                $sub->where('name', 'like', "%{$search}%")
+                    ->orWhere('code', 'like', "%{$search}%");
+            });
+        });
+        $query->when(
+            $request->filled('status') && in_array($request->input('status'), ['active', 'inactive', 'archived'], true),
+            fn ($q) => $q->where('status', $request->input('status'))
+        );
+        $types = $query->orderBy('name')
             ->get()
             ->map(fn (ExamType $t) => [
                 'id' => $t->id,

@@ -19,6 +19,7 @@ class UpdateSectionRequest extends FormRequest
     {
         $section = $this->route('section');
         $classId = $this->input('class_id', $section->class_id);
+        $schoolId = $section->school_id;
 
         return [
             'class_id' => ['required', 'integer', 'exists:school_classes,id'],
@@ -28,7 +29,12 @@ class UpdateSectionRequest extends FormRequest
                 'max:255',
                 Rule::unique('sections', 'name')->where('class_id', $classId)->ignore($section->id),
             ],
-            'code' => ['nullable', 'string', 'max:50'],
+            'code' => [
+                'nullable',
+                'string',
+                'max:50',
+                $schoolId !== null ? Rule::unique('sections', 'code')->where('school_id', $schoolId)->ignore($section->id) : 'nullable',
+            ],
             'room_no' => ['nullable', 'string', 'max:50'],
             'capacity' => ['nullable', 'integer', 'min:0', 'max:32767'],
             'description' => ['nullable', 'string', 'max:500'],

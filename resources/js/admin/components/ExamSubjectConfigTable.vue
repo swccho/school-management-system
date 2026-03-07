@@ -12,7 +12,7 @@
         + Add subject
       </button>
     </div>
-    <div class="mt-3 overflow-x-auto">
+    <div class="sidenav-scroll mt-3 overflow-x-auto">
       <table class="w-full min-w-[800px]">
         <thead>
           <tr class="border-b border-zinc-200 dark:border-zinc-800">

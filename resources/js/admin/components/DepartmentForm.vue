@@ -28,21 +28,12 @@
           </p>
 
           <div>
-            <label for="dept-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</label>
+            <label for="dept-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name <span class="text-red-500">*</span></label>
             <input
               id="dept-name"
               v-model="form.name"
               type="text"
               required
-              class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-            />
-          </div>
-          <div>
-            <label for="dept-code" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Code</label>
-            <input
-              id="dept-code"
-              v-model="form.code"
-              type="text"
               class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
             />
           </div>
@@ -106,7 +97,6 @@ const isEdit = computed(() => !!props.department);
 
 const form = reactive({
   name: '',
-  code: '',
   status: 'active',
   description: '',
 });
@@ -116,7 +106,6 @@ const formError = ref(null);
 
 function resetForm() {
   form.name = '';
-  form.code = '';
   form.status = 'active';
   form.description = '';
   formError.value = null;
@@ -128,7 +117,6 @@ function assign(d) {
     return;
   }
   form.name = d.name ?? '';
-  form.code = d.code ?? '';
   form.status = d.status ?? 'active';
   form.description = d.description ?? '';
   formError.value = null;
@@ -147,7 +135,6 @@ async function handleSubmit() {
   formError.value = null;
   const payload = {
     name: form.name,
-    code: form.code || null,
     status: form.status,
     description: form.description || null,
   };

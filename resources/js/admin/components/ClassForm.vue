@@ -28,7 +28,7 @@
           </p>
 
           <div>
-            <label for="class-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name</label>
+            <label for="class-name" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Name <span class="text-red-500">*</span></label>
             <input
               id="class-name"
               v-model="form.name"
@@ -39,12 +39,22 @@
           </div>
           <div>
             <label for="class-code" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Code</label>
-            <input
-              id="class-code"
-              v-model="form.code"
-              type="text"
-              class="mt-1 block w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
-            />
+            <div class="mt-1 flex gap-2">
+              <input
+                id="class-code"
+                v-model="form.code"
+                type="text"
+                class="flex-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+              />
+              <button
+                type="button"
+                :disabled="generatingCode"
+                class="shrink-0 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-50 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+                @click="handleGenerateCode"
+              >
+                {{ generatingCode ? 'Generating…' : 'Generate' }}
+              </button>
+            </div>
           </div>
           <div>
             <label for="class-numeric-level" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Numeric level</label>
@@ -104,7 +114,10 @@
 
 <script setup>
 import { computed, reactive, ref, watch } from 'vue';
-import { createClass, updateClass } from '../services/classService.js';
+import { useToast } from '../../shared/composables/useToast.js';
+import { createClass, updateClass, generateCode } from '../services/classService.js';
+
+const toast = useToast();
 
 const props = defineProps({
   modelValue: { type: Boolean, default: false },
@@ -124,6 +137,7 @@ const form = reactive({
 });
 
 const saving = ref(false);
+const generatingCode = ref(false);
 const formError = ref(null);
 
 function resetForm() {
@@ -157,6 +171,23 @@ watch(
   },
   { immediate: true }
 );
+
+async function handleGenerateCode() {
+  generatingCode.value = true;
+  try {
+    const payload = {
+      name: form.name,
+      numeric_level: form.numeric_level === '' || form.numeric_level == null ? null : Number(form.numeric_level),
+    };
+    if (props.classItem?.id) payload.exclude_id = props.classItem.id;
+    const result = await generateCode(payload);
+    form.code = result?.data?.code ?? result?.code ?? '';
+  } catch {
+    toast.error('Could not generate code.');
+  } finally {
+    generatingCode.value = false;
+  }
+}
 
 async function handleSubmit() {
   saving.value = true;
