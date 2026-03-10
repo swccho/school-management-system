@@ -21,3 +21,11 @@ Route::get('/teacher', function () {
 Route::get('/teacher/{any}', function () {
     return view('teacher');
 })->where('any', '.*')->name('teacher.catchall');
+
+Route::get('/student', function () {
+    return view('student');
+})->name('student');
+
+Route::get('/student/{any}', function () {
+    return view('student');
+})->where('any', '.*')->name('student.catchall');

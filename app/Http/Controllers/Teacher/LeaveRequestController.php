@@ -77,6 +77,10 @@ class LeaveRequestController extends Controller
         if ($leave_request->user_id !== $request->user()->id) {
             abort(403);
         }
+        $attachmentUrl = $leave_request->attachment_path
+            ? Storage::disk('public')->url($leave_request->attachment_path)
+            : null;
+
         return response()->json([
             'id' => $leave_request->id,
             'leave_type' => $leave_request->leave_type,
@@ -84,9 +88,67 @@ class LeaveRequestController extends Controller
             'end_date' => $leave_request->end_date?->format('Y-m-d'),
             'reason' => $leave_request->reason,
             'attachment_path' => $leave_request->attachment_path,
+            'attachment_url' => $attachmentUrl,
             'status' => $leave_request->status,
             'reviewed_at' => $leave_request->reviewed_at?->toIso8601String(),
             'remarks' => $leave_request->remarks,
         ]);
+    }
+
+    public function update(Request $request, LeaveRequest $leave_request): JsonResponse
+    {
+        if ($leave_request->user_id !== $request->user()->id) {
+            abort(403);
+        }
+        if ($leave_request->status !== 'pending') {
+            return response()->json(['message' => 'Only pending requests can be edited.'], 422);
+        }
+
+        $request->validate([
+            'leave_type' => ['required', 'string', 'max:100'],
+            'start_date' => ['required', 'date'],
+            'end_date' => ['required', 'date', 'after_or_equal:start_date'],
+            'reason' => ['required', 'string', 'max:1000'],
+        ]);
+
+        $leave_request->leave_type = $request->leave_type;
+        $leave_request->start_date = $request->start_date;
+        $leave_request->end_date = $request->end_date;
+        $leave_request->reason = $request->reason;
+
+        if ($request->hasFile('attachment')) {
+            if ($leave_request->attachment_path) {
+                Storage::disk('public')->delete($leave_request->attachment_path);
+            }
+            $leave_request->attachment_path = $request->file('attachment')->store('leave-requests', 'public');
+        }
+
+        $leave_request->save();
+
+        return response()->json([
+            'message' => 'Leave request updated.',
+            'leave_request' => [
+                'id' => $leave_request->id,
+                'leave_type' => $leave_request->leave_type,
+                'start_date' => $leave_request->start_date->format('Y-m-d'),
+                'end_date' => $leave_request->end_date->format('Y-m-d'),
+                'status' => $leave_request->status,
+            ],
+        ]);
+    }
+
+    public function destroy(Request $request, LeaveRequest $leave_request): JsonResponse
+    {
+        if ($leave_request->user_id !== $request->user()->id) {
+            abort(403);
+        }
+        if ($leave_request->status !== 'pending') {
+            return response()->json(['message' => 'Only pending requests can be cancelled.'], 422);
+        }
+
+        $leave_request->status = 'cancelled';
+        $leave_request->save();
+
+        return response()->json(['message' => 'Leave request cancelled.']);
     }
 }

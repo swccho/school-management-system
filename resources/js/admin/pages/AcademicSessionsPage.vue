@@ -6,9 +6,10 @@
     <template #actions>
       <button
         type="button"
-        class="rounded-lg border border-zinc-900 bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+        class="inline-flex items-center gap-2 rounded-lg border border-zinc-900 bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
         @click="openCreateModal"
       >
+        <Plus class="h-4 w-4" />
         Add Session
       </button>
     </template>
@@ -142,6 +143,7 @@
 
 <script setup>
 import { computed, onMounted, ref } from 'vue';
+import { Plus } from 'lucide-vue-next';
 import PageContainer from '../components/PageContainer.vue';
 import AcademicSessionForm from '../components/AcademicSessionForm.vue';
 import DateRangePicker from '../../shared/components/form/DateRangePicker.vue';

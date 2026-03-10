@@ -5,7 +5,9 @@
         <label class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Class · Section · Subject</label>
         <select v-model="contextValue" class="mt-1 rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100" @change="loadMarksEntry">
           <option value="">Select context</option>
-          <option v-for="c in contexts" :key="contextKey(c)" :value="contextKey(c)">{{ c.class_name }} · {{ c.section_name }} · {{ c.subject_name }}</option>
+          <option v-for="c in contexts" :key="contextKey(c)" :value="contextKey(c)">
+            {{ c.class_name }} · {{ c.section_name ?? '—' }} · {{ c.subject_name }}{{ c.context_status ? ` (${c.context_status})` : '' }}
+          </option>
         </select>
       </div>
     </div>
@@ -16,6 +18,14 @@
     </div>
     <div v-else-if="subjectConfig" class="space-y-4">
       <p class="text-sm text-zinc-600 dark:text-zinc-400">{{ subjectConfig.subject_name }} — Full marks: {{ subjectConfig.full_marks }}, Pass: {{ subjectConfig.pass_marks }}</p>
+      <div v-if="!canEdit" class="rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:bg-amber-900/20 dark:text-amber-200">
+        Marks submitted for this context. Editing is closed.
+      </div>
+      <div v-if="validationErrors.length" class="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 dark:bg-red-900/20 dark:text-red-400">
+        <ul class="list-disc pl-4">
+          <li v-for="(err, i) in validationErrors" :key="i">{{ err }}</li>
+        </ul>
+      </div>
       <div class="overflow-x-auto rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
         <table class="w-full min-w-[600px]">
           <thead>
@@ -30,19 +40,21 @@
               <td class="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ row.full_name }}</td>
               <td v-for="comp in subjectConfig.mark_components" :key="comp.id" class="px-4 py-2">
                 <input
+                  v-if="canEdit"
                   v-model.number="row.items[comp.id]"
                   type="number"
                   min="0"
                   :max="comp.marks"
-                  class="w-16 rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-800"
+                  class="w-16 rounded border border-zinc-300 px-2 py-1 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
                 />
+                <span v-else class="inline-block w-16 text-sm text-zinc-700 dark:text-zinc-300">{{ row.items[comp.id] ?? '—' }}</span>
               </td>
               <td class="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">{{ rowTotal(row) }}</td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="flex gap-3">
+      <div v-if="canEdit" class="flex gap-3">
         <button type="button" class="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900" :disabled="saving" @click="saveDraft">
           {{ saving ? 'Saving…' : 'Save draft' }}
         </button>
@@ -59,7 +71,7 @@
 import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import PageContainer from '../components/PageContainer.vue';
-import { getMarksEntryContexts, getMarksEntry, saveMarks, submitMarks as submitMarksApi } from '../services/examService.js';
+import { getMarksEntryContextsWithStatus, getMarksEntry, saveMarks, submitMarks as submitMarksApi } from '../services/examService.js';
 
 const route = useRoute();
 const examId = computed(() => route.params.examId);
@@ -75,6 +87,9 @@ const saving = ref(false);
 const message = ref('');
 const messageError = ref(false);
 const examName = ref('');
+const canEdit = ref(true);
+const contextStatus = ref('draft');
+const validationErrors = ref([]);
 
 function contextKey(c) {
   return [c.class_id, c.section_id ?? '', c.subject_id].join('-');
@@ -105,7 +120,7 @@ async function loadContexts() {
   if (!examId.value) return;
   loadingContexts.value = true;
   try {
-    contexts.value = await getMarksEntryContexts(examId.value);
+    contexts.value = await getMarksEntryContextsWithStatus(examId.value);
     if (contexts.value.length === 1) contextValue.value = contextKey(contexts.value[0]);
   } catch {
     contexts.value = [];
@@ -124,11 +139,14 @@ async function loadMarksEntry() {
   }
   loadingData.value = true;
   message.value = '';
+  validationErrors.value = [];
   try {
     const data = await getMarksEntry(examId.value, ctx);
     examName.value = data.exam?.name ?? '';
     subjectConfig.value = data.subject_config;
     students.value = data.students ?? [];
+    canEdit.value = data.can_edit !== false;
+    contextStatus.value = data.context_status ?? 'draft';
     const byStudent = {};
     (data.entries ?? []).forEach((e) => {
       byStudent[e.student_id] = e;
@@ -160,8 +178,14 @@ async function saveDraft() {
     await saveMarks(examId.value, { ...ctx, status: 'draft', entries });
     message.value = 'Draft saved.';
   } catch (e) {
-    message.value = e.response?.data?.message ?? 'Failed to save.';
+    const errData = e.response?.data;
+    message.value = errData?.message ?? 'Failed to save.';
     messageError.value = true;
+    if (errData?.errors && typeof errData.errors === 'object') {
+      validationErrors.value = Object.values(errData.errors).flat();
+    } else {
+      validationErrors.value = [];
+    }
   } finally {
     saving.value = false;
   }
@@ -184,9 +208,16 @@ async function submitMarks() {
     await saveMarks(examId.value, { ...ctx, status: 'submitted', entries });
     await submitMarksApi(examId.value, ctx);
     message.value = 'Marks submitted.';
+    await loadMarksEntry();
   } catch (e) {
-    message.value = e.response?.data?.message ?? 'Failed to submit.';
+    const errData = e.response?.data;
+    message.value = errData?.message ?? 'Failed to submit.';
     messageError.value = true;
+    if (errData?.errors && typeof errData.errors === 'object') {
+      validationErrors.value = Object.values(errData.errors).flat();
+    } else {
+      validationErrors.value = [];
+    }
   } finally {
     saving.value = false;
   }

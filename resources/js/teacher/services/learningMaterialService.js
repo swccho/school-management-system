@@ -5,6 +5,11 @@ export async function getLearningMaterials(params) {
   return data;
 }
 
+export async function getLearningMaterialAssignmentOptions() {
+  const { data } = await api.get('/learning-materials/assignment-options');
+  return data;
+}
+
 export async function getLearningMaterial(id) {
   const { data } = await api.get(`/learning-materials/${id}`);
   return data;

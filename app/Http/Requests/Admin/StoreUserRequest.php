@@ -17,6 +17,20 @@ class StoreUserRequest extends FormRequest
      */
     public function rules(): array
     {
+        $linkType = $this->input('link_type');
+        $linkIdRules = $linkType ? ['required', 'integer'] : ['nullable', 'integer'];
+        if ($linkType) {
+            $table = match ($linkType) {
+                'staff' => 'staffs',
+                'student' => 'students',
+                'guardian' => 'student_guardians',
+                default => null,
+            };
+            if ($table) {
+                $linkIdRules[] = Rule::exists($table, 'id')->whereNull('user_id');
+            }
+        }
+
         return [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'string', 'email', 'max:255', 'unique:users,email'],
@@ -28,6 +42,8 @@ class StoreUserRequest extends FormRequest
             'role_ids' => ['required', 'array'],
             'role_ids.*' => ['integer', 'exists:roles,id'],
             'avatar' => ['nullable', 'image', 'max:2048'],
+            'link_type' => ['nullable', 'string', Rule::in(['staff', 'student', 'guardian'])],
+            'link_id' => $linkIdRules,
         ];
     }
 }

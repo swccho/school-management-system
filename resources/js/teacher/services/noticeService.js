@@ -5,6 +5,11 @@ export async function getNotices(params) {
   return data;
 }
 
+export async function getNoticeCategoryOptions() {
+  const { data } = await api.get('/notices/category-options');
+  return data;
+}
+
 export async function getNotice(id) {
   const { data } = await api.get(`/notices/${id}`);
   return data;

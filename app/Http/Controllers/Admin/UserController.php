@@ -15,6 +15,7 @@ use App\Services\ActivityLogService;
 use App\Services\DateTimeFormatter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 
@@ -65,16 +66,25 @@ class UserController extends Controller
 
     public function store(StoreUserRequest $request): JsonResponse
     {
-        $validated = collect($request->validated())->except(['role_ids', 'avatar'])->all();
+        $validated = collect($request->validated())->except(['role_ids', 'avatar', 'link_type', 'link_id'])->all();
         $validated['password'] = Hash::make($validated['password']);
 
         if ($request->hasFile('avatar')) {
             $validated['avatar'] = $request->file('avatar')->store('users/avatars', 'public');
         }
 
-        $user = User::create($validated);
-        $user->roles()->sync($request->input('role_ids', []));
-        $user->load('roles');
+        $user = DB::transaction(function () use ($validated, $request) {
+            $user = User::create($validated);
+            $user->roles()->sync($request->input('role_ids', []));
+
+            $linkType = $request->input('link_type');
+            $linkId = $request->input('link_id');
+            if ($linkType && $linkId) {
+                $this->setEntityUserId($linkType, $linkId, $user->id);
+            }
+
+            return $user->load('roles');
+        });
 
         $this->activityLog->log('users', 'create', User::class, $user->id, "User created: {$user->name}", [], $request);
 
@@ -103,7 +113,7 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user): JsonResponse
     {
-        $validated = collect($request->validated())->except(['role_ids', 'avatar'])->all();
+        $validated = collect($request->validated())->except(['role_ids', 'avatar', 'link_type', 'link_id'])->all();
         if (! empty($validated['password'])) {
             $validated['password'] = Hash::make($validated['password']);
         } else {
@@ -117,8 +127,19 @@ class UserController extends Controller
             $validated['avatar'] = $request->file('avatar')->store('users/avatars', 'public');
         }
 
-        $user->update($validated);
-        $user->roles()->sync($request->input('role_ids', []));
+        DB::transaction(function () use ($validated, $request, $user) {
+            $user->update($validated);
+            $user->roles()->sync($request->input('role_ids', []));
+
+            $this->clearUserLinks($user->id);
+
+            $linkType = $request->input('link_type');
+            $linkId = $request->input('link_id');
+            if ($linkType && $linkId) {
+                $this->setEntityUserId($linkType, $linkId, $user->id);
+            }
+        });
+
         $user->load('roles');
 
         $this->activityLog->log('users', 'update', User::class, $user->id, "User updated: {$user->name}", [], $request);
@@ -214,17 +235,32 @@ class UserController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $staffs = Staff::whereNull('user_id')->get(['id', 'first_name', 'last_name'])->map(fn ($s) => [
+        $userId = $request->query('user_id');
+        $staffQuery = Staff::query();
+        $studentQuery = Student::query();
+        $guardianQuery = StudentGuardian::query();
+
+        if ($userId) {
+            $staffQuery->whereNull('user_id')->orWhere('user_id', $userId);
+            $studentQuery->whereNull('user_id')->orWhere('user_id', $userId);
+            $guardianQuery->whereNull('user_id')->orWhere('user_id', $userId);
+        } else {
+            $staffQuery->whereNull('user_id');
+            $studentQuery->whereNull('user_id');
+            $guardianQuery->whereNull('user_id');
+        }
+
+        $staffs = $staffQuery->get(['id', 'first_name', 'last_name'])->map(fn ($s) => [
             'id' => $s->id,
             'label' => $s->full_name,
             'type' => 'staff',
         ]);
-        $students = Student::whereNull('user_id')->get(['id', 'first_name', 'last_name'])->map(fn ($s) => [
+        $students = $studentQuery->get(['id', 'first_name', 'last_name'])->map(fn ($s) => [
             'id' => $s->id,
             'label' => $s->full_name,
             'type' => 'student',
         ]);
-        $guardians = StudentGuardian::whereNull('user_id')->get(['id', 'name'])->map(fn ($g) => [
+        $guardians = $guardianQuery->get(['id', 'name'])->map(fn ($g) => [
             'id' => $g->id,
             'label' => $g->name,
             'type' => 'guardian',
@@ -235,6 +271,26 @@ class UserController extends Controller
             'students' => $students,
             'guardians' => $guardians,
         ]);
+    }
+
+    private function clearUserLinks(int $userId): void
+    {
+        Staff::where('user_id', $userId)->update(['user_id' => null]);
+        Student::where('user_id', $userId)->update(['user_id' => null]);
+        StudentGuardian::where('user_id', $userId)->update(['user_id' => null]);
+    }
+
+    private function setEntityUserId(string $linkType, int $linkId, int $userId): void
+    {
+        $table = match ($linkType) {
+            'staff' => 'staffs',
+            'student' => 'students',
+            'guardian' => 'student_guardians',
+            default => null,
+        };
+        if ($table) {
+            DB::table($table)->where('id', $linkId)->update(['user_id' => $userId]);
+        }
     }
 
     private function userToArray(User $u): array

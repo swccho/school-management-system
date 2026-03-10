@@ -18,6 +18,21 @@ class UpdateUserRequest extends FormRequest
     public function rules(): array
     {
         $userId = $this->route('user')?->id;
+        $linkType = $this->input('link_type');
+        $linkIdRules = $linkType ? ['required', 'integer'] : ['nullable', 'integer'];
+        if ($linkType) {
+            $table = match ($linkType) {
+                'staff' => 'staffs',
+                'student' => 'students',
+                'guardian' => 'student_guardians',
+                default => null,
+            };
+            if ($table) {
+                $linkIdRules[] = Rule::exists($table, 'id')->where(function ($query) use ($userId) {
+                    $query->whereNull('user_id')->orWhere('user_id', $userId);
+                });
+            }
+        }
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -30,6 +45,8 @@ class UpdateUserRequest extends FormRequest
             'role_ids' => ['required', 'array'],
             'role_ids.*' => ['integer', 'exists:roles,id'],
             'avatar' => ['nullable', 'image', 'max:2048'],
+            'link_type' => ['nullable', 'string', Rule::in(['staff', 'student', 'guardian'])],
+            'link_id' => $linkIdRules,
         ];
     }
 }

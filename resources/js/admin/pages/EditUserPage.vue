@@ -13,24 +13,26 @@
       v-else
       :user="user"
       :roles-options="rolesOptions"
+      :linkable-options="linkableOptions"
       @saved="onSaved"
     />
   </PageContainer>
 </template>
 
 <script setup>
-import { onMounted, ref, computed } from 'vue';
+import { onMounted, ref, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import PageContainer from '../components/PageContainer.vue';
 import UserForm from '../components/UserForm.vue';
 import { useToast } from '../../shared/composables/useToast.js';
-import { getUser, getRolesOptions } from '../services/userService.js';
+import { getUser, getRolesOptions, getLinkableEntitiesOptions } from '../services/userService.js';
 
 const router = useRouter();
 const route = useRoute();
 const toast = useToast();
 const user = ref(null);
 const rolesOptions = ref([]);
+const linkableOptions = ref({ staffs: [], students: [], guardians: [] });
 const loading = ref(true);
 const error = ref(null);
 
@@ -58,6 +60,15 @@ async function loadRoles() {
   }
 }
 
+async function loadLinkableOptions() {
+  if (!userId.value) return;
+  try {
+    linkableOptions.value = await getLinkableEntitiesOptions(userId.value);
+  } catch {
+    linkableOptions.value = { staffs: [], students: [], guardians: [] };
+  }
+}
+
 function onSaved() {
   toast.success('User updated successfully.');
   router.push({ name: 'users' });
@@ -67,4 +78,10 @@ onMounted(() => {
   loadRoles();
   loadUser();
 });
+
+watch(user, (u) => {
+  if (u?.id) {
+    loadLinkableOptions();
+  }
+}, { immediate: true });
 </script>

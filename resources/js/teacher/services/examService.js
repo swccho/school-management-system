@@ -5,8 +5,28 @@ export async function getExams(params) {
   return data;
 }
 
+export async function getExamFilterOptions() {
+  const { data } = await api.get('/exams/filter-options');
+  return data;
+}
+
+export async function getExam(examId) {
+  const { data } = await api.get(`/exams/${examId}`);
+  return data;
+}
+
+export async function getExamSummary(examId) {
+  const { data } = await api.get(`/exams/${examId}/summary`);
+  return data;
+}
+
 export async function getMarksEntryContexts(examId) {
   const { data } = await api.get(`/exams/${examId}/marks-entry/contexts`);
+  return data;
+}
+
+export async function getMarksEntryContextsWithStatus(examId) {
+  const { data } = await api.get(`/exams/${examId}/marks-entry/contexts-with-status`);
   return data;
 }
 

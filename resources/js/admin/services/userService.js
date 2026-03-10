@@ -63,7 +63,8 @@ export async function getRolesOptions() {
   return data;
 }
 
-export async function getLinkableEntitiesOptions() {
-  const { data } = await api.get('/admin/users/options/linkable-entities');
+export async function getLinkableEntitiesOptions(userId = null) {
+  const params = userId != null ? { user_id: userId } : {};
+  const { data } = await api.get('/admin/users/options/linkable-entities', { params });
   return data;
 }

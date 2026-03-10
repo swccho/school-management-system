@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreMarksEntryRequest;
+use App\Models\MarkEntry;
 use App\Services\MarksEntryService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -136,6 +137,39 @@ class MarksEntryController extends Controller
             'section' => $section ? ['id' => $section->id, 'name' => $section->name] : null,
             'subject' => $subject ? ['id' => $subject->id, 'name' => $subject->name] : null,
             'entries' => $entries,
+        ]);
+    }
+
+    /**
+     * Reopen marks entry for a context (set status back to draft so teachers can edit again).
+     */
+    public function reopen(Request $request): JsonResponse
+    {
+        if (! $request->user()->hasPermission('manage-marks-entry')) {
+            abort(403, 'Unauthorized.');
+        }
+
+        $request->validate([
+            'exam_id' => ['required', 'integer', 'exists:exams,id'],
+            'class_id' => ['required', 'integer', 'exists:school_classes,id'],
+            'section_id' => ['nullable', 'integer', 'exists:sections,id'],
+            'subject_id' => ['required', 'integer', 'exists:subjects,id'],
+        ]);
+
+        $query = MarkEntry::where('exam_id', $request->exam_id)
+            ->where('class_id', $request->class_id)
+            ->where('subject_id', $request->subject_id);
+        if ($request->filled('section_id')) {
+            $query->where('section_id', $request->section_id);
+        } else {
+            $query->whereNull('section_id');
+        }
+
+        $updated = $query->update(['status' => 'draft']);
+
+        return response()->json([
+            'message' => 'Marks entry reopened for editing.',
+            'updated_count' => $updated,
         ]);
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
 use App\Models\Notice;
+use App\Models\NoticeCategory;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -18,6 +19,7 @@ class NoticeController extends Controller
             ->where('school_id', $schoolId)
             ->where('status', 'published')
             ->with('category')
+            ->orderByDesc('is_featured')
             ->orderByDesc('publish_date');
 
         if ($request->filled('category_id')) {
@@ -45,6 +47,17 @@ class NoticeController extends Controller
         return response()->json($notices);
     }
 
+    public function categoryOptions(Request $request): JsonResponse
+    {
+        $options = NoticeCategory::query()
+            ->active()
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn ($c) => ['id' => $c->id, 'name' => $c->name]);
+
+        return response()->json($options);
+    }
+
     public function show(Request $request, Notice $notice): JsonResponse
     {
         if ($notice->school_id !== $request->user()->school_id || $notice->status !== 'published') {
@@ -59,6 +72,7 @@ class NoticeController extends Controller
             'category' => $notice->category ? ['id' => $notice->category->id, 'name' => $notice->category->name] : null,
             'publish_date' => $notice->publish_date?->format('Y-m-d'),
             'expiry_date' => $notice->expiry_date?->format('Y-m-d'),
+            'is_featured' => $notice->is_featured,
         ]);
     }
 }

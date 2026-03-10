@@ -6,6 +6,7 @@
     <UserForm
       :user="null"
       :roles-options="rolesOptions"
+      :linkable-options="linkableOptions"
       @saved="onSaved"
     />
   </PageContainer>
@@ -17,17 +18,26 @@ import { useRouter } from 'vue-router';
 import PageContainer from '../components/PageContainer.vue';
 import UserForm from '../components/UserForm.vue';
 import { useToast } from '../../shared/composables/useToast.js';
-import { getRolesOptions } from '../services/userService.js';
+import { getRolesOptions, getLinkableEntitiesOptions } from '../services/userService.js';
 
 const router = useRouter();
 const toast = useToast();
 const rolesOptions = ref([]);
+const linkableOptions = ref({ staffs: [], students: [], guardians: [] });
 
 async function loadRoles() {
   try {
     rolesOptions.value = await getRolesOptions();
   } catch {
     rolesOptions.value = [];
+  }
+}
+
+async function loadLinkableOptions() {
+  try {
+    linkableOptions.value = await getLinkableEntitiesOptions();
+  } catch {
+    linkableOptions.value = { staffs: [], students: [], guardians: [] };
   }
 }
 
@@ -38,5 +48,6 @@ function onSaved() {
 
 onMounted(() => {
   loadRoles();
+  loadLinkableOptions();
 });
 </script>

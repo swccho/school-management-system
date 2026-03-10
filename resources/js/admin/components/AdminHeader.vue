@@ -7,9 +7,7 @@
         aria-label="Toggle sidebar"
         @click="toggleSidebar"
       >
-        <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
+        <Menu class="h-5 w-5" />
       </button>
       <div class="flex min-w-0 flex-1 items-center gap-3">
         <div class="min-w-0">
@@ -42,6 +40,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { Menu } from 'lucide-vue-next';
 import { useAppStore } from '../stores/appStore.js';
 import { useAuth } from '../composables/useAuth.js';
 import HelpLink from './HelpLink.vue';

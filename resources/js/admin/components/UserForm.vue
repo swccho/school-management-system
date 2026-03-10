@@ -133,6 +133,39 @@
           <p v-if="rolesOptions.length === 0" class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">No roles available.</p>
         </div>
         <div class="sm:col-span-2">
+          <label for="link-type" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Link to existing record</label>
+          <div class="mt-2 flex flex-wrap gap-4">
+            <select
+              id="link-type"
+              v-model="form.link_type"
+              class="block rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+            >
+              <option value="">None</option>
+              <option value="staff">Staff</option>
+              <option value="student">Student</option>
+              <option value="guardian">Guardian</option>
+            </select>
+            <select
+              v-if="form.link_type"
+              v-model="form.link_id"
+              :class="[
+                'block rounded-lg border bg-white px-3 py-2 text-sm dark:bg-zinc-800 dark:text-zinc-100',
+                form.link_type ? 'border-zinc-300 dark:border-zinc-600' : 'border-zinc-200 dark:border-zinc-700',
+              ]"
+            >
+              <option :value="null">Select {{ form.link_type }}</option>
+              <option
+                v-for="item in linkableEntitiesList"
+                :key="item.id"
+                :value="item.id"
+              >
+                {{ item.label }}
+              </option>
+            </select>
+          </div>
+          <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Link this user to a staff, student, or guardian so they can sign in to the corresponding portal.</p>
+        </div>
+        <div class="sm:col-span-2">
           <label for="user-avatar" class="block text-sm font-medium text-zinc-700 dark:text-zinc-300">Avatar</label>
           <input
             id="user-avatar"
@@ -171,11 +204,22 @@ import { createUser, updateUser } from '../services/userService.js';
 const props = defineProps({
   user: { type: Object, default: null },
   rolesOptions: { type: Array, default: () => [] },
+  linkableOptions: {
+    type: Object,
+    default: () => ({ staffs: [], students: [], guardians: [] }),
+  },
 });
 
 const emit = defineEmits(['saved']);
 
 const isEdit = computed(() => !!props.user);
+
+const linkableEntitiesList = computed(() => {
+  const type = form.value.link_type;
+  if (!type) return [];
+  const key = type === 'staff' ? 'staffs' : type === 'student' ? 'students' : 'guardians';
+  return props.linkableOptions[key] ?? [];
+});
 
 const form = ref({
   name: '',
@@ -187,6 +231,8 @@ const form = ref({
   user_type: '',
   status: 'active',
   role_ids: [],
+  link_type: '',
+  link_id: null,
 });
 const avatarFile = ref(null);
 const formError = ref(null);
@@ -203,13 +249,29 @@ function resetForm() {
     user_type: '',
     status: 'active',
     role_ids: [],
+    link_type: '',
+    link_id: null,
   };
   avatarFile.value = null;
   formError.value = null;
 }
 
+function getInitialLink(user) {
+  if (user?.staff) {
+    return { link_type: 'staff', link_id: user.staff.id };
+  }
+  if (user?.student) {
+    return { link_type: 'student', link_id: user.student.id };
+  }
+  if (user?.student_guardians?.length) {
+    return { link_type: 'guardian', link_id: user.student_guardians[0].id };
+  }
+  return { link_type: '', link_id: null };
+}
+
 watch(() => props.user, (u) => {
   if (u) {
+    const link = getInitialLink(u);
     form.value = {
       name: u.name ?? '',
       email: u.email ?? '',
@@ -220,12 +282,18 @@ watch(() => props.user, (u) => {
       user_type: u.user_type ?? '',
       status: u.status ?? 'active',
       role_ids: (u.roles || []).map((r) => r.id),
+      link_type: link.link_type,
+      link_id: link.link_id,
     };
     avatarFile.value = null;
   } else {
     resetForm();
   }
 }, { immediate: true });
+
+watch(() => form.value.link_type, () => {
+  form.value.link_id = null;
+});
 
 function onAvatarChange(e) {
   const file = e.target.files?.[0];
@@ -250,6 +318,13 @@ function buildPayload() {
     payload.password = f.password;
     payload.password_confirmation = f.password_confirmation;
   }
+  if (f.link_type) {
+    payload.link_type = f.link_type;
+    payload.link_id = f.link_id ?? null;
+  } else {
+    payload.link_type = null;
+    payload.link_id = null;
+  }
   return payload;
 }
 
@@ -268,6 +343,13 @@ function buildFormData(payload) {
   }
   if (avatarFile.value) {
     fd.append('avatar', avatarFile.value);
+  }
+  if (payload.link_type) {
+    fd.append('link_type', payload.link_type);
+    fd.append('link_id', payload.link_id ?? '');
+  } else {
+    fd.append('link_type', '');
+    fd.append('link_id', '');
   }
   return fd;
 }

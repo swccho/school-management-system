@@ -11,6 +11,36 @@ use Illuminate\Support\Facades\Storage;
 
 class LearningMaterialController extends Controller
 {
+    public function assignmentOptions(Request $request): JsonResponse
+    {
+        $user = $request->user();
+        $user->load(['staff.teacher']);
+        $teacher = $user->staff->teacher;
+        $schoolId = $user->school_id;
+        $currentSession = AcademicSession::where('school_id', $schoolId)->where('is_current', true)->first();
+
+        $options = [];
+        if ($currentSession) {
+            $options = $teacher->subjectAssignments()
+                ->where('academic_session_id', $currentSession->id)
+                ->active()
+                ->with(['schoolClass', 'section', 'subject'])
+                ->get()
+                ->map(fn ($a) => [
+                    'class_id' => $a->class_id,
+                    'class_name' => $a->schoolClass?->name,
+                    'section_id' => $a->section_id,
+                    'section_name' => $a->section?->name,
+                    'subject_id' => $a->subject_id,
+                    'subject_name' => $a->subject?->name,
+                ])
+                ->values()
+                ->toArray();
+        }
+
+        return response()->json($options);
+    }
+
     public function index(Request $request): JsonResponse
     {
         $user = $request->user();
@@ -39,8 +69,12 @@ class LearningMaterialController extends Controller
             'description' => $m->description,
             'file_name' => $m->file_name,
             'file_path' => $m->file_path,
+            'file_url' => $m->file_path ? Storage::disk('public')->url($m->file_path) : null,
+            'class_id' => $m->class_id,
             'class_name' => $m->schoolClass?->name,
+            'section_id' => $m->section_id,
             'section_name' => $m->section?->name,
+            'subject_id' => $m->subject_id,
             'subject_name' => $m->subject?->name,
         ]);
 
@@ -159,6 +193,7 @@ class LearningMaterialController extends Controller
             'description' => $m->description,
             'file_name' => $m->file_name,
             'file_path' => $m->file_path,
+            'file_url' => $m->file_path ? Storage::disk('public')->url($m->file_path) : null,
             'class_id' => $m->class_id,
             'class_name' => $m->schoolClass?->name,
             'section_id' => $m->section_id,

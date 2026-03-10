@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Teacher;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Teacher\UpdateMarksRequest;
 use App\Models\Exam;
 use App\Models\MarkEntry;
 use App\Services\MarksEntryService;
@@ -48,6 +49,43 @@ class MarksEntryController extends Controller
     }
 
     /**
+     * List contexts with draft/submitted counts and context_status for this exam.
+     */
+    public function contextsWithStatus(Request $request, Exam $exam): JsonResponse
+    {
+        $contexts = $this->contexts($request, $exam)->getData(true);
+        if (! is_array($contexts)) {
+            $contexts = [];
+        }
+        $result = [];
+        foreach ($contexts as $ctx) {
+            $classId = $ctx['class_id'];
+            $sectionId = $ctx['section_id'] ?? null;
+            $subjectId = $ctx['subject_id'];
+            $query = MarkEntry::where('exam_id', $exam->id)
+                ->where('class_id', $classId)
+                ->where('subject_id', $subjectId);
+            if ($sectionId !== null) {
+                $query->where('section_id', $sectionId);
+            } else {
+                $query->whereNull('section_id');
+            }
+            $entries = $query->get();
+            $studentsCount = $entries->count();
+            $draftCount = $entries->where('status', 'draft')->count();
+            $submittedCount = $entries->where('status', 'submitted')->count();
+            $contextStatus = $submittedCount > 0 && $submittedCount === $studentsCount ? 'submitted' : 'draft';
+            $result[] = array_merge($ctx, [
+                'students_count' => $studentsCount,
+                'draft_count' => $draftCount,
+                'submitted_count' => $submittedCount,
+                'context_status' => $contextStatus,
+            ]);
+        }
+        return response()->json($result);
+    }
+
+    /**
      * Get students, subject config, and current mark entries for one context.
      */
     public function show(Request $request, Exam $exam): JsonResponse
@@ -82,6 +120,11 @@ class MarksEntryController extends Controller
         }
         $entries = $this->marksEntryService->getEntriesForContext($exam->id, $classId, $sectionId, $subjectId);
 
+        $marksEntryOpen = $this->marksEntryService->isMarksEntryOpen($exam->id);
+        $hasSubmitted = $this->marksEntryService->hasSubmittedEntries($exam->id, $classId, $sectionId, $subjectId);
+        $canEdit = $marksEntryOpen && ! $hasSubmitted;
+        $contextStatus = $hasSubmitted ? 'submitted' : (count($entries) > 0 ? 'draft' : 'draft');
+
         return response()->json([
             'exam' => [
                 'id' => $exam->id,
@@ -93,25 +136,17 @@ class MarksEntryController extends Controller
             'subject_config' => $config,
             'students' => $students,
             'entries' => $entries,
+            'can_edit' => $canEdit,
+            'context_status' => $contextStatus,
+            'marks_entry_open' => $marksEntryOpen,
         ]);
     }
 
     /**
      * Save marks (draft or submit).
      */
-    public function update(Request $request, Exam $exam): JsonResponse
+    public function update(UpdateMarksRequest $request, Exam $exam): JsonResponse
     {
-        $request->validate([
-            'class_id' => ['required', 'integer'],
-            'section_id' => ['nullable', 'integer'],
-            'subject_id' => ['required', 'integer'],
-            'status' => ['nullable', 'in:draft,submitted'],
-            'entries' => ['required', 'array'],
-            'entries.*.student_id' => ['required', 'integer'],
-            'entries.*.items' => ['required', 'array'],
-            'entries.*.items.*.mark_component_id' => ['nullable', 'integer'],
-            'entries.*.items.*.obtained_marks' => ['nullable', 'integer'],
-        ]);
 
         $user = $request->user();
         $user->load(['staff.teacher.subjectAssignments' => fn ($q) => $q->active()]);
@@ -127,7 +162,19 @@ class MarksEntryController extends Controller
             return response()->json(['message' => 'Not assigned to this class/section/subject.'], 403);
         }
 
-        $validated = $request->only(['class_id', 'section_id', 'subject_id', 'status', 'entries']);
+        $classId = (int) $request->class_id;
+        $sectionId = $request->filled('section_id') ? (int) $request->section_id : null;
+        $subjectId = (int) $request->subject_id;
+
+        if (! $this->marksEntryService->isMarksEntryOpen($exam->id)) {
+            return response()->json(['message' => 'Marks entry is closed for this exam.'], 422);
+        }
+
+        if ($this->marksEntryService->hasSubmittedEntries($exam->id, $classId, $sectionId, $subjectId)) {
+            return response()->json(['message' => 'Marks submitted for this context; editing is closed.'], 422);
+        }
+
+        $validated = $request->validated();
         $validated['exam_id'] = $exam->id;
         $validated['status'] = $validated['status'] ?? 'draft';
 

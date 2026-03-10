@@ -1,6 +1,6 @@
 <template>
   <PageContainer title="Learning Materials" description="Upload and manage learning materials for your classes.">
-    <div class="mb-4 flex flex-wrap gap-4">
+    <div class="mb-4 flex flex-wrap items-end gap-3">
       <button
         type="button"
         class="rounded-lg border border-zinc-900 bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900"
@@ -8,6 +8,31 @@
       >
         Upload material
       </button>
+      <div class="flex flex-wrap items-end gap-3">
+        <div class="flex flex-col gap-1">
+          <label for="filter-class" class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Class</label>
+          <select id="filter-class" v-model="filters.class_id" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100">
+            <option value="">All</option>
+            <option v-for="c in classOptions" :key="c.id" :value="c.id">{{ c.name }}</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="filter-section" class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Section</label>
+          <select id="filter-section" v-model="filters.section_id" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100">
+            <option value="">All</option>
+            <option v-for="s in sectionOptions" :key="s.id" :value="s.id">{{ s.name }}</option>
+          </select>
+        </div>
+        <div class="flex flex-col gap-1">
+          <label for="filter-subject" class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Subject</label>
+          <select id="filter-subject" v-model="filters.subject_id" class="rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100">
+            <option value="">All</option>
+            <option v-for="s in subjectOptions" :key="s.id" :value="s.id">{{ s.name }}</option>
+          </select>
+        </div>
+        <button type="button" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-600" @click="applyFilters">Apply</button>
+        <button type="button" class="rounded-lg border border-zinc-300 px-4 py-2 text-sm dark:border-zinc-600" @click="clearFilters">Clear</button>
+      </div>
     </div>
     <div v-if="loading" class="py-8 text-center text-sm text-zinc-500">Loading…</div>
     <div v-else-if="items.length === 0" class="rounded-xl border border-zinc-200 bg-white p-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900">
@@ -28,12 +53,14 @@
             <td class="px-4 py-3 text-sm font-medium text-zinc-900 dark:text-zinc-100">{{ m.title }}</td>
             <td class="px-4 py-3 text-sm text-zinc-600 dark:text-zinc-400">{{ m.class_name }} · {{ m.section_name }} · {{ m.subject_name }}</td>
             <td class="px-4 py-3 text-sm">
-              <a v-if="m.file_path" :href="downloadUrl(m.file_path)" target="_blank" rel="noopener" class="text-blue-600 hover:underline dark:text-blue-400">{{ m.file_name || 'Download' }}</a>
+              <a v-if="m.file_url || m.file_path" :href="m.file_url || downloadUrl(m.file_path)" target="_blank" rel="noopener" class="text-blue-600 hover:underline dark:text-blue-400">{{ m.file_name || 'Download' }}</a>
               <span v-else class="text-zinc-400">—</span>
             </td>
-            <td class="px-4 py-3 text-right">
-              <button type="button" class="text-sm text-blue-600 hover:underline dark:text-blue-400" @click="showForm(m)">Edit</button>
-              <button type="button" class="ml-3 text-sm text-red-600 hover:underline dark:text-red-400" @click="confirmDelete(m)">Delete</button>
+            <td class="px-4 py-3">
+              <div class="flex flex-wrap justify-end gap-2">
+                <button type="button" class="min-h-[44px] rounded-lg px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-900/20" @click="showForm(m)">Edit</button>
+                <button type="button" class="min-h-[44px] rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-900/20" @click="confirmDelete(m)">Delete</button>
+              </div>
             </td>
           </tr>
         </tbody>
@@ -82,10 +109,39 @@
 import { computed, onMounted, ref } from 'vue';
 import PageContainer from '../components/PageContainer.vue';
 import { useAuthStore } from '../stores/authStore.js';
-import { getLearningMaterials, createLearningMaterial, updateLearningMaterial, deleteLearningMaterial } from '../services/learningMaterialService.js';
+import { getLearningMaterials, getLearningMaterialAssignmentOptions, createLearningMaterial, updateLearningMaterial, deleteLearningMaterial } from '../services/learningMaterialService.js';
 
 const authStore = useAuthStore();
-const assignments = computed(() => authStore.assignments ?? []);
+const assignmentOptionsList = ref([]);
+const assignments = computed(() => assignmentOptionsList.value);
+
+const classOptions = computed(() => {
+  const seen = new Set();
+  return (assignments.value || []).filter((a) => {
+    const k = a.class_id;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).map((a) => ({ id: a.class_id, name: a.class_name }));
+});
+const sectionOptions = computed(() => {
+  const seen = new Set();
+  return (assignments.value || []).filter((a) => {
+    const k = a.section_id;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).map((a) => ({ id: a.section_id, name: a.section_name }));
+});
+const subjectOptions = computed(() => {
+  const seen = new Set();
+  return (assignments.value || []).filter((a) => {
+    const k = a.subject_id;
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  }).map((a) => ({ id: a.subject_id, name: a.subject_name }));
+});
 
 const loading = ref(true);
 const items = ref([]);
@@ -93,6 +149,7 @@ const formOpen = ref(false);
 const editingId = ref(null);
 const saving = ref(false);
 const formError = ref('');
+const filters = ref({ class_id: '', section_id: '', subject_id: '' });
 
 const form = ref({
   classSectionSubject: '',
@@ -105,10 +162,23 @@ function downloadUrl(path) {
   return `/storage/${path}`;
 }
 
+function applyFilters() {
+  load();
+}
+
+function clearFilters() {
+  filters.value = { class_id: '', section_id: '', subject_id: '' };
+  load();
+}
+
 async function load() {
   loading.value = true;
   try {
-    items.value = await getLearningMaterials();
+    const params = {};
+    if (filters.value.class_id) params.class_id = filters.value.class_id;
+    if (filters.value.section_id) params.section_id = filters.value.section_id;
+    if (filters.value.subject_id) params.subject_id = filters.value.subject_id;
+    items.value = await getLearningMaterials(params);
   } catch {
     items.value = [];
   } finally {
@@ -151,5 +221,19 @@ function confirmDelete(m) {
   deleteLearningMaterial(m.id).then(() => load()).catch(() => {});
 }
 
-onMounted(load);
+async function loadAssignmentsIfNeeded() {
+  assignmentOptionsList.value = authStore.assignments ?? [];
+  if (assignmentOptionsList.value.length === 0) {
+    try {
+      assignmentOptionsList.value = await getLearningMaterialAssignmentOptions();
+    } catch {
+      assignmentOptionsList.value = [];
+    }
+  }
+}
+
+onMounted(() => {
+  loadAssignmentsIfNeeded();
+  load();
+});
 </script>
