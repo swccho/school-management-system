@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreSchoolClassRequest;
 use App\Http\Requests\Admin\UpdateSchoolClassRequest;
 use App\Models\School;
 use App\Models\SchoolClass;
+use App\Services\ActivityLogService;
 use App\Services\DateTimeFormatter;
 use App\Services\SchoolClassService;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,8 @@ class SchoolClassController extends Controller
 {
     public function __construct(
         private DateTimeFormatter $dateTimeFormatter,
-        private SchoolClassService $schoolClassService
+        private SchoolClassService $schoolClassService,
+        private ActivityLogService $activityLog
     ) {}
     public function index(Request $request): JsonResponse
     {
@@ -61,6 +63,7 @@ class SchoolClassController extends Controller
         $schoolClass = SchoolClass::create(array_merge($validated, [
             'school_id' => $schoolId,
         ]));
+        $this->activityLog->log('classes', 'create', SchoolClass::class, $schoolClass->id, "Class created: {$schoolClass->name}", [], $request);
 
         return response()->json([
             'message' => 'Class created.',
@@ -101,6 +104,7 @@ class SchoolClassController extends Controller
     public function update(UpdateSchoolClassRequest $request, SchoolClass $school_class): JsonResponse
     {
         $school_class->update($request->validated());
+        $this->activityLog->log('classes', 'update', SchoolClass::class, $school_class->id, "Class updated: {$school_class->name}", [], $request);
 
         return response()->json([
             'message' => 'Class updated.',

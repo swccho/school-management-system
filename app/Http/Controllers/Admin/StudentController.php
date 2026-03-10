@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\UpdateStudentRequest;
 use App\Models\School;
 use App\Models\Student;
 use App\Models\StudentGuardian;
+use App\Services\ActivityLogService;
 use App\Services\DateTimeFormatter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -18,7 +19,8 @@ use Illuminate\Validation\ValidationException;
 class StudentController extends Controller
 {
     public function __construct(
-        private DateTimeFormatter $dateTimeFormatter
+        private DateTimeFormatter $dateTimeFormatter,
+        private ActivityLogService $activityLog
     ) {}
     public function index(Request $request): JsonResponse
     {
@@ -94,6 +96,8 @@ class StudentController extends Controller
             return $student->load('guardians');
         });
 
+        $this->activityLog->log('students', 'create', Student::class, $student->id, "Student created: {$student->first_name} {$student->last_name}", [], $request);
+
         return response()->json([
             'message' => 'Student created.',
             'student' => $this->toArray($student->fresh(['guardians'])),
@@ -106,7 +110,12 @@ class StudentController extends Controller
             abort(403, 'Unauthorized.');
         }
 
-        $student->load('guardians');
+        $student->load([
+            'guardians',
+            'studentAcademicAssignments.academicSession',
+            'studentAcademicAssignments.schoolClass',
+            'studentAcademicAssignments.section',
+        ]);
 
         return response()->json($this->toDetailArray($student));
     }
@@ -115,6 +124,7 @@ class StudentController extends Controller
     {
         $student->update($request->validated());
         $student->load('guardians');
+        $this->activityLog->log('students', 'update', Student::class, $student->id, "Student updated: {$student->first_name} {$student->last_name}", [], $request);
 
         return response()->json([
             'message' => 'Student updated.',
@@ -188,6 +198,26 @@ class StudentController extends Controller
 
     private function toDetailArray(Student $s): array
     {
+        $currentAssignment = null;
+        if ($s->relationLoaded('studentAcademicAssignments')) {
+            $current = $s->studentAcademicAssignments->first(
+                fn ($a) => $a->academicSession && $a->academicSession->is_current && $a->status === 'active'
+            );
+            if ($current) {
+                $currentAssignment = [
+                    'id' => $current->id,
+                    'academic_session_id' => $current->academic_session_id,
+                    'academic_session_name' => $current->academicSession?->name,
+                    'class_id' => $current->class_id,
+                    'class_name' => $current->schoolClass?->name,
+                    'section_id' => $current->section_id,
+                    'section_name' => $current->section?->name,
+                    'roll_no' => $current->roll_no,
+                    'status' => $current->status,
+                ];
+            }
+        }
+
         return array_merge($this->toArray($s), [
             'guardians' => $s->guardians->map(fn ($g) => [
                 'id' => $g->id,
@@ -203,6 +233,7 @@ class StudentController extends Controller
                 'can_receive_email' => (bool) $g->pivot->can_receive_email,
                 'can_login' => (bool) $g->pivot->can_login,
             ])->values()->all(),
+            'current_academic_assignment' => $currentAssignment,
         ]);
     }
 }

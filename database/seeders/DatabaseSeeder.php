@@ -46,6 +46,7 @@ class DatabaseSeeder extends Seeder
             TeacherSubjectAssignmentSeeder::class,
             AttendanceSessionSeeder::class,
             ClassRoutineSeeder::class,
+            AdminGuideSeeder::class,
         ]);
 
         $superAdmin = Role::where('slug', 'super-admin')->first();

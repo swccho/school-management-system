@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreSectionRequest;
 use App\Http\Requests\Admin\UpdateSectionRequest;
 use App\Models\School;
 use App\Models\Section;
+use App\Services\ActivityLogService;
 use App\Services\DateTimeFormatter;
 use App\Services\SectionService;
 use Illuminate\Http\JsonResponse;
@@ -16,7 +17,8 @@ class SectionController extends Controller
 {
     public function __construct(
         private DateTimeFormatter $dateTimeFormatter,
-        private SectionService $sectionService
+        private SectionService $sectionService,
+        private ActivityLogService $activityLog
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -72,6 +74,7 @@ class SectionController extends Controller
         ]));
 
         $section->load('schoolClass');
+        $this->activityLog->log('sections', 'create', Section::class, $section->id, "Section created: {$section->name}", [], $request);
 
         return response()->json([
             'message' => 'Section created.',
@@ -93,8 +96,8 @@ class SectionController extends Controller
     public function update(UpdateSectionRequest $request, Section $section): JsonResponse
     {
         $section->update($request->validated());
-
         $section->load('schoolClass');
+        $this->activityLog->log('sections', 'update', Section::class, $section->id, "Section updated: {$section->name}", [], $request);
 
         return response()->json([
             'message' => 'Section updated.',

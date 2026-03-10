@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateAcademicSessionRequest;
 use App\Models\AcademicSession;
 use App\Models\School;
 use App\Services\AcademicSessionService;
+use App\Services\ActivityLogService;
 use App\Services\DateTimeFormatter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,8 @@ class AcademicSessionController extends Controller
 {
     public function __construct(
         private AcademicSessionService $academicSessionService,
-        private DateTimeFormatter $dateTimeFormatter
+        private DateTimeFormatter $dateTimeFormatter,
+        private ActivityLogService $activityLog
     ) {}
 
     public function index(Request $request): JsonResponse
@@ -64,6 +66,7 @@ class AcademicSessionController extends Controller
         $session = AcademicSession::create(array_merge($validated, [
             'school_id' => $schoolId,
         ]));
+        $this->activityLog->log('sessions', 'create', AcademicSession::class, $session->id, "Academic session created: {$session->name}", [], $request);
 
         return response()->json([
             'message' => 'Academic session created.',
@@ -103,6 +106,7 @@ class AcademicSessionController extends Controller
     public function update(UpdateAcademicSessionRequest $request, AcademicSession $academic_session): JsonResponse
     {
         $academic_session->update($request->validated());
+        $this->activityLog->log('sessions', 'update', AcademicSession::class, $academic_session->id, "Academic session updated: {$academic_session->name}", [], $request);
 
         return response()->json([
             'message' => 'Academic session updated.',
@@ -117,6 +121,7 @@ class AcademicSessionController extends Controller
         }
 
         $this->academicSessionService->setCurrent($academic_session);
+        $this->activityLog->log('sessions', 'update', AcademicSession::class, $academic_session->id, "Current academic session set: {$academic_session->name}", [], $request);
 
         return response()->json([
             'message' => 'Current session updated.',

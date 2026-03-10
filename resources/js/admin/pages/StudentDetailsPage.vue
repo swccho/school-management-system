@@ -121,7 +121,49 @@
 
       <section class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">
         <h3 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Academic assignment</h3>
-        <p class="mt-2 text-sm text-zinc-500 dark:text-zinc-400">Class and section assignment will be available in a future release.</p>
+        <div v-if="student.current_academic_assignment" class="mt-4 space-y-3">
+          <dl class="grid gap-2 sm:grid-cols-2">
+            <div>
+              <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Session</dt>
+              <dd class="mt-0.5 text-sm text-zinc-900 dark:text-zinc-100">
+                {{ student.current_academic_assignment.academic_session_name ?? '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Class</dt>
+              <dd class="mt-0.5 text-sm text-zinc-900 dark:text-zinc-100">
+                {{ student.current_academic_assignment.class_name ?? '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Section</dt>
+              <dd class="mt-0.5 text-sm text-zinc-900 dark:text-zinc-100">
+                {{ student.current_academic_assignment.section_name ?? '—' }}
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs font-medium text-zinc-500 dark:text-zinc-400">Roll number</dt>
+              <dd class="mt-0.5 text-sm text-zinc-900 dark:text-zinc-100">
+                {{ student.current_academic_assignment.roll_no ?? '—' }}
+              </dd>
+            </div>
+          </dl>
+          <router-link
+            :to="{ name: 'student-academic-assignment', params: { id: student.id } }"
+            class="inline-block rounded-lg border border-zinc-900 bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            Manage Academic Assignment
+          </router-link>
+        </div>
+        <div v-else class="mt-4">
+          <p class="text-sm text-zinc-500 dark:text-zinc-400">No current academic assignment.</p>
+          <router-link
+            :to="{ name: 'student-academic-assignment', params: { id: student.id } }"
+            class="mt-2 inline-block rounded-lg border border-zinc-900 bg-zinc-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-zinc-800 dark:border-zinc-100 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200"
+          >
+            Assign Academic Info
+          </router-link>
+        </div>
       </section>
 
       <section class="rounded-xl border border-zinc-200 bg-white p-6 dark:border-zinc-800 dark:bg-zinc-900">

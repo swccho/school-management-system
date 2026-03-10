@@ -53,6 +53,7 @@ class AssignRolePermissionsSeeder extends Seeder
                     'view-results',
                     'manage-results',
                     'manage-grade-scales',
+                    'view-admin-guide',
                 ])->pluck('id')
             );
         }
@@ -67,11 +68,32 @@ class AssignRolePermissionsSeeder extends Seeder
                     'create-notices',
                     'edit-notices',
                     'publish-notices',
+                    'delete-notices',
+                    'view-news-posts',
+                    'create-news-posts',
+                    'edit-news-posts',
+                    'delete-news-posts',
+                    'publish-news-posts',
                     'view-events',
                     'create-events',
                     'edit-events',
+                    'delete-events',
+                    'publish-events',
                     'view-gallery',
                     'manage-gallery',
+                    'view-downloads',
+                    'create-downloads',
+                    'edit-downloads',
+                    'delete-downloads',
+                    'publish-downloads',
+                    'view-pages',
+                    'create-pages',
+                    'edit-pages',
+                    'delete-pages',
+                    'publish-pages',
+                    'manage-banners',
+                    'manage-homepage-sections',
+                    'view-admin-guide',
                 ])->pluck('id')
             );
         }
@@ -83,6 +105,7 @@ class AssignRolePermissionsSeeder extends Seeder
                     'view-dashboard',
                     'view-reports',
                     'export-reports',
+                    'view-admin-guide',
                 ])->pluck('id')
             );
         }

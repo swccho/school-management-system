@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreSubjectRequest;
 use App\Http\Requests\Admin\UpdateSubjectRequest;
 use App\Models\School;
 use App\Models\Subject;
+use App\Services\ActivityLogService;
 use App\Services\DateTimeFormatter;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -14,7 +15,8 @@ use Illuminate\Http\Request;
 class SubjectController extends Controller
 {
     public function __construct(
-        private DateTimeFormatter $dateTimeFormatter
+        private DateTimeFormatter $dateTimeFormatter,
+        private ActivityLogService $activityLog
     ) {}
     public function index(Request $request): JsonResponse
     {
@@ -52,6 +54,7 @@ class SubjectController extends Controller
         $subject = Subject::create(array_merge($request->validated(), [
             'school_id' => $school?->id,
         ]));
+        $this->activityLog->log('subjects', 'create', Subject::class, $subject->id, "Subject created: {$subject->name}", [], $request);
 
         return response()->json([
             'message' => 'Subject created.',
@@ -71,6 +74,7 @@ class SubjectController extends Controller
     public function update(UpdateSubjectRequest $request, Subject $subject): JsonResponse
     {
         $subject->update($request->validated());
+        $this->activityLog->log('subjects', 'update', Subject::class, $subject->id, "Subject updated: {$subject->name}", [], $request);
 
         return response()->json([
             'message' => 'Subject updated.',

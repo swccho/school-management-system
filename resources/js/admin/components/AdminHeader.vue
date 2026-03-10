@@ -11,13 +11,16 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
-      <div>
-        <h1 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-          {{ pageTitle }}
-        </h1>
-        <p v-if="pageSubtitle" class="text-xs text-zinc-500 dark:text-zinc-400">
-          {{ pageSubtitle }}
-        </p>
+      <div class="flex min-w-0 flex-1 items-center gap-3">
+        <div class="min-w-0">
+          <h1 class="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+            {{ pageTitle }}
+          </h1>
+          <p v-if="pageSubtitle" class="text-xs text-zinc-500 dark:text-zinc-400">
+            {{ pageSubtitle }}
+          </p>
+        </div>
+        <HelpLink />
       </div>
     </div>
     <div class="flex items-center gap-3">
@@ -41,6 +44,7 @@ import { computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useAppStore } from '../stores/appStore.js';
 import { useAuth } from '../composables/useAuth.js';
+import HelpLink from './HelpLink.vue';
 
 const route = useRoute();
 const router = useRouter();
